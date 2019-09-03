@@ -1,6 +1,7 @@
 import hashlib
 import logging
 import shutil
+import time
 from os import stat, listdir
 from os.path import isfile, isdir
 from sqlalchemy import Column, Integer, String
@@ -123,11 +124,9 @@ class DirectorySql(Base):
 
         self.files = {}
         self.directories = {}
+        self.size = 0
         if isdir(path):
             self.path = path
-            self.get_dir_contents()
-
-            self.size = self.get_total_size()
         else:
             raise NotADirectoryError
 
@@ -140,6 +139,7 @@ class DirectorySql(Base):
 
             if isdir(full_path):
                 self.directories[c] = DirectorySql(full_path)
+                self.directories[c].get_dir_contents()
             elif isfile(full_path):
                 self.files[c] = FileSql(full_path)
 
@@ -164,6 +164,25 @@ class DirectorySql(Base):
 
         return files
 
+    def get_total_subdirs(self):
+
+        subdirs = len(self.directories)
+
+        for d in self.directories:
+            subdirs += self.directories[d].get_total_subdirs()
+
+        return subdirs
+
+    def set_scan_time(self):
+
+        self.last_scan_time = trunc(time.time())
+
+    def run_scan(self):
+
+        self.get_dir_contents()
+        self.set_scan_time()
+        self.size = self.get_total_size()
+
     def add_files_to_db(self, session):
 
         for f in self.files:
@@ -175,5 +194,12 @@ class DirectorySql(Base):
     def add_to_db(self, session):
 
         if not self.id:
-            session.add(self)
-            session.commit()
+            self.times_scanned = 1
+            self.files_scanned = self.get_total_files()
+            self.files_moved = 0
+        else:
+            self.times_scanned += 1
+            self.files_scanned += self.get_total_files()
+
+        session.add(self)
+        session.commit()

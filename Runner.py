@@ -1,8 +1,10 @@
 import logging
+import time
 
-from MediaLibraryManager.Abstract.FileSystemAbstract import Directory
 from MediaLibraryManager.Sql.Main import create_database
-from MediaLibraryManager.util import *
+from MediaLibraryManager.Sql.Scanning import DirectoryScan
+
+from math import trunc
 import sys
 
 
@@ -19,20 +21,21 @@ def set_up_logging(f):
 
 
 if __name__ == '__main__':
-    logger = set_up_logging("MLM.log")
+    database_name = 'db'
+    logfile_name = "MLM-{}.log".format(trunc(time.time()))
+    logger = set_up_logging(logfile_name)
 
-    Session = create_database('db')
+    logger.info("Connectiong to database '{}' ...".format(database_name))
+    Session = create_database(database_name)
     session = Session()
 
     directory_name = sys.argv[1]
 
-    logger.info("Creating directory object for directory \"{dir}\" ...".format(dir=directory_name))
-    directory = Directory(directory_name)
-
-    logger.info("Total directory size: {}".format(convert_bytes_to_friendly_size(directory.get_total_size())))
-    logger.info("Total files: {}".format(directory.get_total_files()))
-
-    logger.info("Adding files to database ...")
-    directory.add_files_to_db(session)
+    logger.info("Creating scan object ...")
+    scan = DirectoryScan(directory_name)
+    scan.logger = logger
+    scan.log_file = logfile_name
+    scan.run_scan(session)
+    scan.add_scan_to_db(session)
 
     logger.info("Complete!")
