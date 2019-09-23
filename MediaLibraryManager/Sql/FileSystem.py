@@ -2,7 +2,7 @@ import hashlib
 import logging
 import shutil
 import time
-from os import stat, listdir
+from os import stat, listdir, mkdir
 from os.path import isfile, isdir
 from sqlalchemy import Column, Integer, String
 
@@ -46,6 +46,7 @@ class FileSql(Base):
             else:
                 self.extension = None
         else:
+            print("File {} does not exist!".format(path))
             raise FileNotFoundError
 
     def add_to_db(self, session):
@@ -100,7 +101,7 @@ class FileSql(Base):
         shutil.copy2(current_path, new_path)
 
         if session:
-            new_file = FileSql(new_path)
+            new_file = FileSql(new_path + "/" + self.filename)
             new_file.orig_filename = self.filename
             new_file.orig_path = self.path
             new_file.add_to_db(session)
@@ -196,10 +197,45 @@ class DirectorySql(Base):
         if not self.id:
             self.times_scanned = 1
             self.files_scanned = self.get_total_files()
-            self.files_moved = 0
         else:
             self.times_scanned += 1
-            self.files_scanned += self.get_total_files()
+            if self.files_scanned is None:
+                self.files_scanned = self.get_total_files()
+            else:
+                self.files_scanned += self.get_total_files()
 
         session.add(self)
         session.commit()
+
+    def get_subdir(self, base_path):
+
+        if base_path in self.path:
+            subdir = self.path.replace(base_path, '')
+            return subdir
+        else:
+            return self.path
+
+    def copy_directory_to_new_path(self, new_path, session=None):
+
+        files_copied = 0
+
+        if not isdir(new_path):
+            mkdir(new_path)
+
+        for f in self.files:
+            self.files[f].copy_file_to_new_path(new_path, session)
+            files_copied += 1
+
+        for d in self.directories:
+            subdir = self.directories[d].get_subdir(self.path)
+            files_copied += self.directories[d].copy_directory_to_new_path(new_path + subdir, session)
+
+        self.increment_files_moved(files_copied)
+        return files_copied
+
+    def increment_files_moved(self, num_files):
+
+        if not self.files_moved:
+            self.files_moved = num_files
+        else:
+            self.files_moved += num_files

@@ -30,12 +30,15 @@ if __name__ == '__main__':
     session = Session()
 
     directory_name = sys.argv[1]
+    destination_directory = sys.argv[2]
 
     logger.info("Creating scan object ...")
     scan = DirectoryScan(directory_name)
     scan.logger = logger
     scan.log_file = logfile_name
+    scan.destination = destination_directory
     scan.run_scan(session)
+    scan.copy_files(session)
     scan.add_scan_to_db(session)
 
     logger.info("Complete!")

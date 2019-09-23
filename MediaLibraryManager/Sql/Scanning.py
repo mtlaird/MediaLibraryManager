@@ -42,6 +42,8 @@ class DirectoryScan(Base):
                 self.directory = DirectorySql(self.path)
             except NotADirectoryError:
                 raise
+        else:
+            self.directory.__init__(self.path)
         self.directory.run_scan()
 
     def run_scan(self, session=None):
@@ -73,3 +75,11 @@ class DirectoryScan(Base):
 
         session.add(self)
         session.commit()
+
+    def copy_files(self, session):
+
+        self.logger.info("Copying files to {} ...".format(self.destination))
+
+        self.files_moved = self.directory.copy_directory_to_new_path(self.destination, session)
+
+        self.logger.info("Copied {} files.".format(self.files_moved))
