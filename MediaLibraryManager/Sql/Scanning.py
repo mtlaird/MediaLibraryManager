@@ -32,7 +32,7 @@ class DirectoryScan(Base):
         self.total_size = 0
         self.logger = None
 
-    def directory_init(self, session=None):
+    def directory_init(self, get_md5=False, session=None):
 
         if session:
             self.directory = session.query(DirectorySql).filter(DirectorySql.path == self.path).one_or_none()
@@ -44,12 +44,12 @@ class DirectoryScan(Base):
                 raise
         else:
             self.directory.__init__(self.path)
-        self.directory.run_scan()
+        self.directory.run_scan(get_md5)
 
-    def run_scan(self, session=None):
+    def run_scan(self, get_md5=False, session=None):
 
         self.logger.info("Creating directory object for directory \"{dir}\" ...".format(dir=self.path))
-        self.directory_init(session)
+        self.directory_init(get_md5, session)
 
         self.logger.info("Total directory size: {}".format(convert_bytes_to_friendly_size(self.directory.get_total_size())))
         self.total_size = self.directory.get_total_size()
@@ -80,6 +80,11 @@ class DirectoryScan(Base):
 
         self.logger.info("Copying files to {} ...".format(self.destination))
 
-        self.files_moved = self.directory.copy_directory_to_new_path(self.destination, session)
+        if self.move_type == "flatten":
+            self.files_moved = self.directory.copy_files_to_new_path(self.destination, session)
+        elif self.move_type == "managed":
+            self.files_moved = self.directory.copy_files_to_managed_path(self.destination, session)
+        else:
+            self.files_moved = self.directory.copy_directory_to_new_path(self.destination, session)
 
         self.logger.info("Copied {} files.".format(self.files_moved))

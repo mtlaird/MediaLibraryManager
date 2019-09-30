@@ -106,6 +106,25 @@ class FileSql(Base):
             new_file.orig_path = self.path
             new_file.add_to_db(session)
 
+    def copy_file_to_managed_path(self, new_path, session=None):
+        current_path = self.path + self.filename
+        if not self.md5:
+            raise TypeError
+        new_filename = self.md5 + "." + self.extension
+        new_directory = new_path + "/" + self.md5[0:2] + "/"
+
+        if not isdir(new_directory):
+            mkdir(new_directory)
+
+        new_path = new_directory + new_filename
+        shutil.copy2(current_path, new_path)
+
+        if session:
+            new_file = FileSql(new_path)
+            new_file.orig_filename = self.filename
+            new_file.orig_path = self.path
+            new_file.add_to_db(session)
+
 
 class DirectorySql(Base):
 
@@ -120,6 +139,8 @@ class DirectorySql(Base):
 
     def __init__(self, path):
 
+        self.logger = logging.getLogger('MediaLibraryManager')
+
         if '\\' in path:
             path = path.replace('\\', '/')
 
@@ -131,7 +152,7 @@ class DirectorySql(Base):
         else:
             raise NotADirectoryError
 
-    def get_dir_contents(self):
+    def get_dir_contents(self, get_md5=False):
 
         contents = listdir(self.path)
         for c in contents:
@@ -140,9 +161,9 @@ class DirectorySql(Base):
 
             if isdir(full_path):
                 self.directories[c] = DirectorySql(full_path)
-                self.directories[c].get_dir_contents()
+                self.directories[c].get_dir_contents(get_md5)
             elif isfile(full_path):
-                self.files[c] = FileSql(full_path)
+                self.files[c] = FileSql(full_path, get_md5)
 
     def get_total_size(self):
 
@@ -178,9 +199,9 @@ class DirectorySql(Base):
 
         self.last_scan_time = trunc(time.time())
 
-    def run_scan(self):
+    def run_scan(self, get_md5=False):
 
-        self.get_dir_contents()
+        self.get_dir_contents(get_md5)
         self.set_scan_time()
         self.size = self.get_total_size()
 
@@ -215,6 +236,7 @@ class DirectorySql(Base):
         else:
             return self.path
 
+    # Copies files into a new directory, while preserving subdirectory structure
     def copy_directory_to_new_path(self, new_path, session=None):
 
         files_copied = 0
@@ -229,6 +251,45 @@ class DirectorySql(Base):
         for d in self.directories:
             subdir = self.directories[d].get_subdir(self.path)
             files_copied += self.directories[d].copy_directory_to_new_path(new_path + subdir, session)
+
+        self.increment_files_moved(files_copied)
+        return files_copied
+
+    # Copies all files into a new directory, without preserving subdirectory structure
+    def copy_files_to_new_path(self, new_path, session=None):
+
+        files_copied = 0
+
+        if not isdir(new_path):
+            mkdir(new_path)
+
+        for f in self.files:
+            self.files[f].copy_file_to_new_path(new_path, session)
+            files_copied += 1
+
+        for d in self.directories:
+            files_copied += self.directories[d].copy_files_to_new_path(new_path, session)
+
+        self.increment_files_moved(files_copied)
+        return files_copied
+
+    # Copies all files into a new directory, managing the subdirectory structure using file hashes
+    def copy_files_to_managed_path(self, new_path, session=None):
+
+        files_copied = 0
+
+        if not isdir(new_path):
+            mkdir(new_path)
+
+        for f in self.files:
+            try:
+                self.files[f].copy_file_to_managed_path(new_path, session)
+                files_copied += 1
+            except TypeError:
+                self.logger.error("Could not copy file {} - no md5 found!".format(f))
+
+        for d in self.directories:
+            self.directories[d].copy_files_to_managed_path(new_path, session)
 
         self.increment_files_moved(files_copied)
         return files_copied

@@ -22,10 +22,10 @@ def set_up_logging(f):
 
 if __name__ == '__main__':
     database_name = 'db'
-    logfile_name = "MLM-{}.log".format(trunc(time.time()))
+    logfile_name = "logs/MLM-{}.log".format(trunc(time.time()))
     logger = set_up_logging(logfile_name)
 
-    logger.info("Connectiong to database '{}' ...".format(database_name))
+    logger.info("Connecting to database '{}' ...".format(database_name))
     Session = create_database(database_name)
     session = Session()
 
@@ -37,7 +37,9 @@ if __name__ == '__main__':
     scan.logger = logger
     scan.log_file = logfile_name
     scan.destination = destination_directory
-    scan.run_scan(session)
+    scan.move_type = "keep"
+    get_md5 = False
+    scan.run_scan(get_md5, session)
     scan.copy_files(session)
     scan.add_scan_to_db(session)
 
