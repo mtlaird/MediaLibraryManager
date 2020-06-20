@@ -1,0 +1,6 @@
+[config]
+
+# log_dir = "logs"
+# dest_dir = "dstFolder"
+# move_type = "keep"
+# db_name = "mlm-db"
