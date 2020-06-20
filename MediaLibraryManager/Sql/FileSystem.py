@@ -105,6 +105,7 @@ class FileSql(Base):
             new_file.orig_filename = self.filename
             new_file.orig_path = self.path
             new_file.add_to_db(session)
+            return new_file
 
     def copy_file_to_managed_path(self, new_path, session=None):
         current_path = self.path + self.filename
@@ -120,10 +121,11 @@ class FileSql(Base):
         shutil.copy2(current_path, new_path)
 
         if session:
-            new_file = FileSql(new_path)
+            new_file = FileSql(new_path, get_md5=True)
             new_file.orig_filename = self.filename
             new_file.orig_path = self.path
             new_file.add_to_db(session)
+            return new_file
 
 
 class DirectorySql(Base):
@@ -239,60 +241,57 @@ class DirectorySql(Base):
     # Copies files into a new directory, while preserving subdirectory structure
     def copy_directory_to_new_path(self, new_path, session=None):
 
-        files_copied = 0
+        files_copied_list = []
 
         if not isdir(new_path):
             mkdir(new_path)
 
         for f in self.files:
-            self.files[f].copy_file_to_new_path(new_path, session)
-            files_copied += 1
+            files_copied_list.append(self.files[f].copy_file_to_new_path(new_path, session))
 
         for d in self.directories:
             subdir = self.directories[d].get_subdir(self.path)
-            files_copied += self.directories[d].copy_directory_to_new_path(new_path + subdir, session)
+            files_copied_list += self.directories[d].copy_directory_to_new_path(new_path + subdir, session)
 
-        self.increment_files_moved(files_copied)
-        return files_copied
+        self.increment_files_moved(len(files_copied_list))
+        return files_copied_list
 
     # Copies all files into a new directory, without preserving subdirectory structure
     def copy_files_to_new_path(self, new_path, session=None):
 
-        files_copied = 0
+        files_copied_list = []
 
         if not isdir(new_path):
             mkdir(new_path)
 
         for f in self.files:
-            self.files[f].copy_file_to_new_path(new_path, session)
-            files_copied += 1
+            files_copied_list.append(self.files[f].copy_file_to_new_path(new_path, session))
 
         for d in self.directories:
-            files_copied += self.directories[d].copy_files_to_new_path(new_path, session)
+            files_copied_list += self.directories[d].copy_files_to_new_path(new_path, session)
 
-        self.increment_files_moved(files_copied)
-        return files_copied
+        self.increment_files_moved(len(files_copied_list))
+        return files_copied_list
 
     # Copies all files into a new directory, managing the subdirectory structure using file hashes
     def copy_files_to_managed_path(self, new_path, session=None):
 
-        files_copied = 0
+        files_copied_list = []
 
         if not isdir(new_path):
             mkdir(new_path)
 
         for f in self.files:
             try:
-                self.files[f].copy_file_to_managed_path(new_path, session)
-                files_copied += 1
+                files_copied_list.append(self.files[f].copy_file_to_managed_path(new_path, session))
             except TypeError:
                 self.logger.error("Could not copy file {} - no md5 found!".format(f))
 
         for d in self.directories:
-            self.directories[d].copy_files_to_managed_path(new_path, session)
+            files_copied_list += self.directories[d].copy_files_to_managed_path(new_path, session)
 
-        self.increment_files_moved(files_copied)
-        return files_copied
+        self.increment_files_moved(len(files_copied_list))
+        return files_copied_list
 
     def increment_files_moved(self, num_files):
 

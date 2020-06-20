@@ -29,8 +29,14 @@ if __name__ == '__main__':
     Session = create_database(database_name)
     session = Session()
 
-    directory_name = sys.argv[1]
-    destination_directory = sys.argv[2]
+    if len(sys.argv) > 1:
+        directory_name = sys.argv[1]
+    else:
+        directory_name = 'TestFolder'
+    if len(sys.argv) > 2:
+        destination_directory = sys.argv[2]
+    else:
+        destination_directory = 'dstFolder'
 
     logger.info("Creating scan object ...")
     scan = DirectoryScan(directory_name)
@@ -41,6 +47,7 @@ if __name__ == '__main__':
     get_md5 = False
     scan.run_scan(get_md5, session)
     scan.copy_files(session)
+    scan.add_images_to_db(session)
     scan.add_scan_to_db(session)
 
     logger.info("Complete!")
