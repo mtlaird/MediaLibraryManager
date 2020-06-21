@@ -1,6 +1,7 @@
 [config]
 
 # log_dir = "logs"
+log_level = "debug"
 # dest_dir = "dstFolder"
-# move_type = "keep"
+move_type = "none"
 # db_name = "mlm-db"

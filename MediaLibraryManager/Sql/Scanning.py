@@ -66,14 +66,13 @@ class DirectoryScan(Base):
 
     def add_scan_to_db(self, session):
 
-        self.logger.info("Adding directory and files to database...")
-        self.add_directory_to_db(session)
         self.logger.info("Adding scan to database...")
         self.end_time = trunc(time.time())
         self.add_to_db(session)
 
     def add_directory_to_db(self, session):
 
+        self.logger.info("Adding directory and files to database...")
         self.directory.add_to_db(session)
         self.directory.add_files_to_db(session)
 
@@ -97,9 +96,15 @@ class DirectoryScan(Base):
         self.logger.info("Copied {} files.".format(self.files_moved))
         return self.files_moved
 
-    def add_images_to_db(self, session):
+    def add_images_to_db(self, session, moved_files=True, scanned_files=False):
         self.logger.info("Adding images to db...")
-        for f in self.files_moved_list:
+        files_list = []
+        if moved_files:
+            files_list += self.files_moved_list
+        if scanned_files:
+            all_files_in_dir = self.directory.get_all_files()
+            files_list += all_files_in_dir
+        for f in files_list:
             try:
                 i = LibraryImage(f.id, f.path + f.filename)
                 self.logger.debug("Successfully created image from file: {}".format(f.path + f.filename))

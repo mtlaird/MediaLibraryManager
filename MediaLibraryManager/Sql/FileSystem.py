@@ -167,6 +167,18 @@ class DirectorySql(Base):
             elif isfile(full_path):
                 self.files[c] = FileSql(full_path, get_md5)
 
+    def get_all_files(self):
+        files_list = []
+
+        for f in self.files:
+            files_list.append(self.files[f])
+            self.logger.info("adding file {} to files list...".format(f))
+        for d in self.directories:
+            files_list += self.directories[d].get_all_files()
+            self.logger.info("adding directory {} to files list...".format(d))
+
+        return files_list
+
     def get_total_size(self):
 
         size = 0
