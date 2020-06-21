@@ -7,7 +7,7 @@ Base = declarative_base()
 
 def create_database(db_name):
 
-    engine = create_engine('sqlite:///{}.sqlite'.format(db_name))
+    engine = create_engine('sqlite:///{}.sqlite'.format(db_name), connect_args={'check_same_thread': False})
     sessionm = sessionmaker(bind=engine)
     Base.metadata.create_all(engine)
 

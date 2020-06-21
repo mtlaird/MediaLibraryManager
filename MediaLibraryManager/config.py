@@ -5,9 +5,9 @@ from math import trunc
 import toml
 
 
-def set_up_logging(config):
+def set_up_logging(config, single_run=True):
     log = logging.getLogger("MediaLibraryManager")
-    logfile_name = config.generate_logfile_name()
+    logfile_name = config.generate_logfile_name(single_run)
     handler = logging.FileHandler(logfile_name)
     handler.setLevel(logging.INFO)
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -53,5 +53,8 @@ class MediaLibraryManagerConfig:
         if 'get_md5' in self.toml['config']:
             self.get_md5 = self.toml['config']['get_md5']
 
-    def generate_logfile_name(self):
-        return "{}/MLM-{}.log".format(self.log_dir, trunc(time.time()))
+    def generate_logfile_name(self, single_run=True):
+        if single_run:
+            return "{}/MLM-{}.log".format(self.log_dir, trunc(time.time()))
+        else:
+            return "{}/MLM.log".format(self.log_dir)

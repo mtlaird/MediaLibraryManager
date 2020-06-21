@@ -1,0 +1,10 @@
+{%  extends 'base.html' %}
+
+{% block content %}
+        <table border="1">
+        <tr><th>Path</th><th>Scans</th><th>Last Scan</th><th>Files Scanned</th></tr>
+        {% for dir in directories %}
+            <tr><td>{{ dir.path }}</td><td>{{ dir.times_scanned }}</td><td>{{ dir.last_scan_time }}</td><td>{{ dir.files_scanned }}</td></tr>
+        {% endfor %}
+    </table>
+{% endblock %}
