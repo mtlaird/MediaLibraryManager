@@ -172,10 +172,8 @@ class DirectorySql(Base):
 
         for f in self.files:
             files_list.append(self.files[f])
-            self.logger.info("adding file {} to files list...".format(f))
         for d in self.directories:
             files_list += self.directories[d].get_all_files()
-            self.logger.info("adding directory {} to files list...".format(d))
 
         return files_list
 
