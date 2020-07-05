@@ -1,0 +1,34 @@
+{%  extends 'base.html' %}
+
+{% block content %}
+
+    <header>
+      <h2>Header Goes Here</h2>
+    </header>
+
+    <section>
+      <nav>
+        <ul>
+            <li><a href="#">Nav</a></li>
+            <li><a href="#">Content</a></li>
+            <li><a href="#">Goes</a></li>
+            <li><a href="#">Here</a></li>
+        </ul>
+      </nav>
+
+      <article>
+          {% for image in images %}
+          <span class="gallery-tile">
+              <a href="/images/view/{{ image.LibraryImage.id }}">
+                  <img src="/thumbnails/id/{{ image.LibraryImage.id }}" alt="">
+              </a>
+          </span>
+          {% endfor %}
+      </article>
+    </section>
+
+    <footer>
+      <p>Footer</p>
+    </footer>
+
+{% endblock %}

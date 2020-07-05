@@ -59,6 +59,15 @@ def images():
     return render_template('images.html', images=db_images)
 
 
+@app.route('/gallery')
+def image_gallery():
+
+    session = setup_session()
+    db_images = session.query(LibraryImage, FileSql).filter(LibraryImage.file_id == FileSql.id).all()
+
+    return render_template('gallery.html', images=db_images)
+
+
 @app.route('/images/view/<image_id>')
 def image_view(image_id):
 
@@ -78,3 +87,13 @@ def serve_image(image_id):
 
     return send_file(db_image.FileSql.path + db_image.FileSql.filename,
                      mimetypes.guess_type(db_image.FileSql.filename)[0])
+
+
+@app.route('/thumbnails/id/<image_id>')
+def serve_thumbnail(image_id):
+
+    session = setup_session()
+    db_image = session.query(LibraryImage, FileSql).filter(LibraryImage.id == image_id). \
+        filter(LibraryImage.file_id == FileSql.id).one()
+
+    return send_file(db_image.LibraryImage.thumbnail_path, mimetypes.guess_type(db_image.FileSql.filename)[0])
