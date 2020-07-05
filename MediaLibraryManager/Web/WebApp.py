@@ -59,6 +59,16 @@ def images():
     return render_template('images.html', images=db_images)
 
 
+@app.route('/images/view/<image_id>')
+def image_view(image_id):
+
+    session = setup_session()
+    db_image = session.query(LibraryImage, FileSql).filter(LibraryImage.id == image_id).\
+        filter(LibraryImage.file_id == FileSql.id).one()
+
+    return render_template('image_view.html', image=db_image)
+
+
 @app.route('/images/id/<image_id>')
 def serve_image(image_id):
 

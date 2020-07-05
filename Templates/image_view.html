@@ -1,0 +1,28 @@
+{%  extends 'base.html' %}
+
+{% block content %}
+
+    <header>
+      <h2>Header Goes Here</h2>
+    </header>
+
+    <section>
+      <nav>
+        <ul>
+            <li><a href="#">Nav</a></li>
+            <li><a href="#">Content</a></li>
+            <li><a href="#">Goes</a></li>
+            <li><a href="#">Here</a></li>
+        </ul>
+      </nav>
+
+      <article class="image">
+          <a href="/images/id/{{ image.LibraryImage.id }}"><img src="/images/id/{{ image.LibraryImage.id }}" title="{{ image.FileSql.filename }}" alt="not found"></a>
+      </article>
+    </section>
+
+    <footer>
+      <p>Footer</p>
+    </footer>
+
+{% endblock %}
