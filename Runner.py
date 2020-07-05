@@ -25,6 +25,7 @@ if __name__ == '__main__':
     scan.log_file = config.generate_logfile_name()
     scan.destination = config.dest_dir
     scan.move_type = config.move_type
+    scan.thumbnail_dir = config.thumbnail_dir
     get_md5 = config.get_md5
     scan.run_scan(get_md5, session)
     if (scan.move_type not in [None, "none"]) and scan.destination is not None:

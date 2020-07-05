@@ -4,3 +4,4 @@ venv/
 *.log
 logs/*
 dstFolder/*
+thumbnails/*

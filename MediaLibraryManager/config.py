@@ -34,6 +34,7 @@ class MediaLibraryManagerConfig:
         self.move_type = 'keep'
         self.db_name = 'db'
         self.get_md5 = False
+        self.thumbnail_dir = 'thumbnails'
         with open(self.filename) as f:
             self.toml = toml.load(f)
 
@@ -52,6 +53,8 @@ class MediaLibraryManagerConfig:
             self.db_name = self.toml['config']['db_name']
         if 'get_md5' in self.toml['config']:
             self.get_md5 = self.toml['config']['get_md5']
+        if 'thumbnail_dir' in self.toml['config']:
+            self.thumbnail_dir = self.toml['config']['thumbnail_dir']
 
     def generate_logfile_name(self, single_run=True):
         if single_run:

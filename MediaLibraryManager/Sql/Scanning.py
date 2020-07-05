@@ -36,6 +36,7 @@ class DirectoryScan(Base):
         self.logger = None
         self.files_moved_list = []
         self.images_added_list = []
+        self.thumbnail_dir = None
 
     def directory_init(self, get_md5=False, session=None):
 
@@ -111,6 +112,7 @@ class DirectoryScan(Base):
             except UnidentifiedImageError:
                 self.logger.debug("Failed to create image from file: {}".format(f.path + f.filename))
             else:
+                i.create_thumbnail(self.thumbnail_dir)
                 i.add_to_db(session)
                 self.images_added_list.append(i)
 
