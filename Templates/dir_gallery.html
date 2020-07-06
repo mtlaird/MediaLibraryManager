@@ -1,0 +1,35 @@
+{%  extends 'base.html' %}
+
+{% block content %}
+
+    <header>
+      <h2>Image Gallery</h2>
+    </header>
+
+    <section>
+      <nav>
+          <p><b>Directory:</b> {{ main_dir }}</p>
+          <p><b>Subdirs:</b></p>
+          <ul>
+          {% for sd in subdirs %}
+              <li><a href="{{ sd['path_url'] }}">{{ sd['path_str'] }}</a></li>
+          {% endfor %}
+          </ul>
+      </nav>
+
+      <article>
+          {% for image in images %}
+          <span class="gallery-tile">
+              <a href="/images/view/{{ image.LibraryImage.id }}">
+                  <img src="/thumbnails/id/{{ image.LibraryImage.id }}" alt="">
+              </a>
+          </span>
+          {% endfor %}
+      </article>
+    </section>
+
+    <footer>
+      <p>Footer</p>
+    </footer>
+
+{% endblock %}

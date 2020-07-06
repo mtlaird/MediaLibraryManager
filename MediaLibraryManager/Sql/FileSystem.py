@@ -2,6 +2,7 @@ import hashlib
 import logging
 import shutil
 import time
+import urllib.parse
 from datetime import datetime as dt
 from os import stat, listdir, mkdir
 from os.path import isfile, isdir
@@ -326,3 +327,7 @@ class DirectorySql(Base):
             self.files_moved = num_files
         else:
             self.files_moved += num_files
+
+    def get_url_encoded_path(self):
+
+        return urllib.parse.quote_plus(self.path)

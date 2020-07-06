@@ -1,10 +1,11 @@
 import logging
 import mimetypes
+import urllib.parse
 
 from MediaLibraryManager.Sql.FileSystem import DirectorySql, FileSql
 from MediaLibraryManager.Sql.LibraryImage import LibraryImage
 from MediaLibraryManager.Sql.Main import create_database
-from flask import Flask, render_template, send_file
+from flask import Flask, render_template, send_file, request
 
 from MediaLibraryManager.Sql.Scanning import DirectoryScan
 
@@ -66,6 +67,43 @@ def image_gallery():
     db_images = session.query(LibraryImage, FileSql).filter(LibraryImage.file_id == FileSql.id).all()
 
     return render_template('gallery.html', images=db_images)
+
+
+@app.route('/gallery/directory/<directory_id>')
+def directory_gallery_id(directory_id):
+
+    session = setup_session()
+    db_dir = session.query(DirectorySql).filter(DirectorySql.id == directory_id).one()
+    db_subdirs = session.query(FileSql).filter(FileSql.path.like(db_dir.path + '%')).distinct(FileSql.path).\
+        with_entities(FileSql.path).all()
+    processed_subdirs = []
+    for sd in db_subdirs:
+        psd = {'path_str': sd[0], 'path_url': '/gallery/directory?path=' + urllib.parse.quote_plus(sd[0])}
+        if psd['path_str'] != db_dir.path:
+            processed_subdirs.append(psd)
+    db_images = session.query(LibraryImage, FileSql).filter(LibraryImage.file_id == FileSql.id)\
+        .filter(FileSql.path.like(db_dir.path + '%'))
+
+    return render_template('dir_gallery.html', images=db_images, main_dir=db_dir.path, subdirs=processed_subdirs)
+
+
+@app.route('/gallery/directory')
+def directory_gallery_path():
+
+    directory_path = urllib.parse.unquote_plus(request.args.get('path'))
+
+    session = setup_session()
+    db_subdirs = session.query(FileSql).filter(FileSql.path.like(directory_path + '%')).distinct(FileSql.path).\
+        with_entities(FileSql.path).all()
+    processed_subdirs = []
+    for sd in db_subdirs:
+        psd = {'path_str': sd[0], 'path_url': '/gallery/directory?path=' + urllib.parse.quote_plus(sd[0])}
+        if psd['path_str'] != directory_path:
+            processed_subdirs.append(psd)
+    db_images = session.query(LibraryImage, FileSql).filter(LibraryImage.file_id == FileSql.id)\
+        .filter(FileSql.path.like(directory_path + '%'))
+
+    return render_template('dir_gallery.html', images=db_images, main_dir=directory_path, subdirs=processed_subdirs)
 
 
 @app.route('/images/view/<image_id>')

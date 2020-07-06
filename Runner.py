@@ -17,7 +17,7 @@ if __name__ == '__main__':
     if len(sys.argv) > 1:
         directory_name = sys.argv[1]
     else:
-        directory_name = 'F:/Pictures/Images/Photos'
+        directory_name = 'F:/Pictures/New Camera'
 
     logger.info("Creating scan object ...")
     scan = DirectoryScan(directory_name)
