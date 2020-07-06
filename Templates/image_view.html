@@ -3,17 +3,25 @@
 {% block content %}
 
     <header>
-      <h2>Header Goes Here</h2>
+      <h2>Image View</h2>
     </header>
 
     <section>
       <nav>
-        <ul>
-            <li><a href="#">Nav</a></li>
-            <li><a href="#">Content</a></li>
-            <li><a href="#">Goes</a></li>
-            <li><a href="#">Here</a></li>
-        </ul>
+          <p><b>Navigation:</b>
+          <ul>
+            <li><a href="/gallery">Gallery</a></li>
+          </ul>
+          </p>
+          <p><b>Image info:</b><br>
+          <ul>
+            <li>Filename: {{ image.FileSql.filename }}</li>
+            <li>Height: {{ image.LibraryImage.height }}</li>
+            <li>Width: {{ image.LibraryImage.height }}</li>
+            <li>Size: {{ image.FileSql.get_friendly_size() }}</li>
+            <li>Created: {{ image.FileSql.get_friendly_created_time() }}</li>
+          </ul>
+          </p>
       </nav>
 
       <article class="image">

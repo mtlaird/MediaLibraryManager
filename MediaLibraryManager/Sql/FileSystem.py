@@ -2,8 +2,11 @@ import hashlib
 import logging
 import shutil
 import time
+from datetime import datetime as dt
 from os import stat, listdir, mkdir
 from os.path import isfile, isdir
+
+import humanfriendly
 from sqlalchemy import Column, Integer, String
 
 from MediaLibraryManager.Sql.Main import Base
@@ -48,6 +51,20 @@ class FileSql(Base):
         else:
             print("File {} does not exist!".format(path))
             raise FileNotFoundError
+
+    def get_friendly_size(self):
+
+        return humanfriendly.format_size(self.size)
+
+    @staticmethod
+    def convert_friendly_time(ts_int):
+
+        ts = dt.fromtimestamp(ts_int)
+        return ts.strftime("%B %d, %Y %H:%M:%S")
+
+    def get_friendly_created_time(self):
+
+        return self.convert_friendly_time(self.ctime)
 
     def add_to_db(self, session):
 
