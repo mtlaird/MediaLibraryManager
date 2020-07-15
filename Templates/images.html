@@ -4,9 +4,9 @@
         <table>
             <tr><th>Filename</th><th>Path</th><th>Format</th><th>Size</th><th>Height</th><th>Width</th></tr>
         {% for image in images %}
-            <tr><td><a href="/images/view/{{ image.LibraryImage.id }}">{{ image.FileSql.filename }}</a></td><td>{{ image.FileSql.path }}</td>
-                <td>{{ image.LibraryImage.format }}</td><td>{{ image.FileSql.size }}</td><td>{{ image.LibraryImage.height }}</td>
-                <td>{{ image.LibraryImage.width }}</td></tr>
+            <tr><td><a href="/images/view/{{ image.id }}">{{ image.file_info.filename }}</a></td><td>{{ image.file_info.path }}</td>
+                <td>{{ image.format }}</td><td>{{ image.file_info.size }}</td><td>{{ image.height }}</td>
+                <td>{{ image.width }}</td></tr>
         {% endfor %}
     </table>
 {% endblock %}

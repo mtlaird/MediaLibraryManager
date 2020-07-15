@@ -1,6 +1,7 @@
 import logging
 
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy.orm import relationship
 from PIL import Image
 
 from MediaLibraryManager.Sql.Main import Base
@@ -12,11 +13,13 @@ class LibraryImage(Base):
     __tablename__ = 'images'
 
     id = Column(Integer, primary_key=True)
-    file_id = Column(Integer)
+    file_id = Column(Integer, ForeignKey('files.id'))
     format = Column(String)
     height = Column(Integer)
     width = Column(Integer)
     thumbnail_path = Column(String)
+
+    file_info = relationship('FileSql')
 
     def __init__(self, file_id, path):
         self.logger = logging.getLogger('MediaLibraryManager')

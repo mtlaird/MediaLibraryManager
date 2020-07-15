@@ -15,17 +15,17 @@
           </p>
           <p><b>Image info:</b><br>
           <ul>
-            <li>Filename: {{ image.FileSql.filename }}</li>
-            <li>Height: {{ image.LibraryImage.height }}</li>
-            <li>Width: {{ image.LibraryImage.height }}</li>
-            <li>Size: {{ image.FileSql.get_friendly_size() }}</li>
-            <li>Created: {{ image.FileSql.get_friendly_created_time() }}</li>
+            <li>Filename: {{ image.file_info.filename }}</li>
+            <li>Height: {{ image.height }}</li>
+            <li>Width: {{ image.height }}</li>
+            <li>Size: {{ image.file_info.get_friendly_size() }}</li>
+            <li>Created: {{ image.file_info.get_friendly_created_time() }}</li>
           </ul>
           </p>
       </nav>
 
       <article class="image">
-          <a href="/images/id/{{ image.LibraryImage.id }}"><img src="/images/id/{{ image.LibraryImage.id }}" title="{{ image.FileSql.filename }}" alt="not found"></a>
+          <a href="/images/id/{{ image.id }}"><img src="/images/id/{{ image.id }}" title="{{ image.file_info.filename }}" alt="not found"></a>
       </article>
     </section>
 

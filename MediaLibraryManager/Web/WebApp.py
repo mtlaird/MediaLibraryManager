@@ -55,7 +55,7 @@ def directory_scans():
 def images():
 
     session = setup_session()
-    db_images = session.query(LibraryImage, FileSql).filter(LibraryImage.file_id == FileSql.id).all()
+    db_images = session.query(LibraryImage).all()
 
     return render_template('images.html', images=db_images)
 
@@ -64,7 +64,7 @@ def images():
 def image_gallery():
 
     session = setup_session()
-    db_images = session.query(LibraryImage, FileSql).filter(LibraryImage.file_id == FileSql.id).all()
+    db_images = session.query(LibraryImage).all()
 
     return render_template('gallery.html', images=db_images)
 
@@ -110,8 +110,7 @@ def directory_gallery_path():
 def image_view(image_id):
 
     session = setup_session()
-    db_image = session.query(LibraryImage, FileSql).filter(LibraryImage.id == image_id).\
-        filter(LibraryImage.file_id == FileSql.id).one()
+    db_image = session.query(LibraryImage).filter(LibraryImage.id == image_id).one()
 
     return render_template('image_view.html', image=db_image)
 
@@ -120,18 +119,16 @@ def image_view(image_id):
 def serve_image(image_id):
 
     session = setup_session()
-    db_image = session.query(LibraryImage, FileSql).filter(LibraryImage.id == image_id).\
-        filter(LibraryImage.file_id == FileSql.id).one()
+    db_image = session.query(LibraryImage).filter(LibraryImage.id == image_id).one()
 
-    return send_file(db_image.FileSql.path + db_image.FileSql.filename,
-                     mimetypes.guess_type(db_image.FileSql.filename)[0])
+    return send_file(db_image.file_info.path + db_image.file_info.filename,
+                     mimetypes.guess_type(db_image.file_info.filename)[0])
 
 
 @app.route('/thumbnails/id/<image_id>')
 def serve_thumbnail(image_id):
 
     session = setup_session()
-    db_image = session.query(LibraryImage, FileSql).filter(LibraryImage.id == image_id). \
-        filter(LibraryImage.file_id == FileSql.id).one()
+    db_image = session.query(LibraryImage).filter(LibraryImage.id == image_id).one()
 
-    return send_file(db_image.LibraryImage.thumbnail_path, mimetypes.guess_type(db_image.FileSql.filename)[0])
+    return send_file(db_image.thumbnail_path, mimetypes.guess_type(db_image.file_info.filename)[0])
