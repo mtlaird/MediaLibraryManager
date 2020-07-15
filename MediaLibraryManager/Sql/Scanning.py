@@ -25,7 +25,7 @@ class DirectoryScan(Base):
     move_type = Column(String)
     log_file = Column(String)
 
-    def __init__(self, path):
+    def __init__(self, path, ignored_filetypes=None):
         self.logger = logging.getLogger('MediaLibraryManager')
         self.start_time = int(time.time())
         self.path = path
@@ -37,6 +37,10 @@ class DirectoryScan(Base):
         self.files_moved_list = []
         self.images_added_list = []
         self.thumbnail_dir = None
+        if not ignored_filetypes:
+            self.ignored_filetypes = []
+        else:
+            self.ignored_filetypes = ignored_filetypes
 
     def directory_init(self, get_md5=False, session=None):
 
@@ -49,7 +53,7 @@ class DirectoryScan(Base):
             except NotADirectoryError:
                 raise
         else:
-            self.directory.__init__(self.path)
+            self.directory.__init__(self.path, self.ignored_filetypes)
         self.directory.run_scan(get_md5)
 
     def run_scan(self, get_md5=False, session=None):

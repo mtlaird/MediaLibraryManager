@@ -157,7 +157,7 @@ class DirectorySql(Base):
     files_scanned = Column(Integer)
     files_moved = Column(Integer)
 
-    def __init__(self, path):
+    def __init__(self, path, ignored_filetypes=None):
 
         self.logger = logging.getLogger('MediaLibraryManager')
 
@@ -167,6 +167,10 @@ class DirectorySql(Base):
         self.files = {}
         self.directories = {}
         self.size = 0
+        if not ignored_filetypes:
+            self.ignored_filetypes = []
+        else:
+            self.ignored_filetypes = ignored_filetypes
         if isdir(path):
             self.path = path
         else:
@@ -183,7 +187,8 @@ class DirectorySql(Base):
                 self.directories[c] = DirectorySql(full_path)
                 self.directories[c].get_dir_contents(get_md5)
             elif isfile(full_path):
-                self.files[c] = FileSql(full_path, get_md5)
+                if full_path.split('.')[-1] not in self.ignored_filetypes:
+                    self.files[c] = FileSql(full_path, get_md5)
 
     def get_all_files(self):
         files_list = []

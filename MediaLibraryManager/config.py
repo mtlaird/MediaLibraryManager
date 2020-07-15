@@ -35,6 +35,7 @@ class MediaLibraryManagerConfig:
         self.db_name = 'db'
         self.get_md5 = False
         self.thumbnail_dir = 'thumbnails'
+        self.ignored_filetypes = []
         with open(self.filename) as f:
             self.toml = toml.load(f)
 
@@ -55,6 +56,8 @@ class MediaLibraryManagerConfig:
             self.get_md5 = self.toml['config']['get_md5']
         if 'thumbnail_dir' in self.toml['config']:
             self.thumbnail_dir = self.toml['config']['thumbnail_dir']
+        if 'ignored_filetypes' in self.toml['config']:
+            self.ignored_filetypes = self.toml['config']['ignored_filetypes']
 
     def generate_logfile_name(self, single_run=True):
         if single_run:

@@ -20,7 +20,7 @@ if __name__ == '__main__':
         directory_name = 'F:/Pictures/New Camera'
 
     logger.info("Creating scan object ...")
-    scan = DirectoryScan(directory_name)
+    scan = DirectoryScan(directory_name, config.ignored_filetypes)
     scan.logger = logger
     scan.log_file = config.generate_logfile_name()
     scan.destination = config.dest_dir
