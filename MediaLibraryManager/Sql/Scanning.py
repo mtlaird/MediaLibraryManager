@@ -67,28 +67,44 @@ class DirectoryScan(BaseMixin, Base):
         self.logger.info("Total subdirectories: {}".format(self.directory.get_total_subdirs()))
         self.subdirs_found = self.directory.get_total_subdirs()
 
-    def add_scan_to_db(self, session):
+    def process_files(self, session):
 
-        self.logger.info("Adding scan to database...")
+        if (self.move_type not in [None, "none"]) and self.destination is not None:
+            self.copy_files(session)
+            self.add_images_to_db(session)
+        else:
+            self.add_directory_to_db(session)
+            self.add_images_to_db(session, scanned_files=True)
+
+    def finish_scan(self, session):
+
+        self.logger.info("Finishing scan to database...")
         self.end_time = trunc(time.time())
+        self.update_in_db(session)
+
+    def full_scan(self, session, get_md5=False):
+
         self.add_to_db(session)
+        self.run_scan(get_md5, session)
+        self.process_files(session)
+        self.finish_scan(session)
 
     def add_directory_to_db(self, session):
 
         self.logger.info("Adding directory and files to database...")
         self.directory.add_to_db(session)
-        self.directory.add_files_to_db(session)
+        self.directory.add_files_to_db(session, self.id)
 
     def copy_files(self, session):
 
         self.logger.info("Copying files to {} ...".format(self.destination))
 
         if self.move_type == "flatten":
-            self.files_moved_list = self.directory.copy_files_to_new_path(self.destination, session)
+            self.files_moved_list = self.directory.copy_files_to_new_path(self.destination, session, self.id)
         elif self.move_type == "managed":
-            self.files_moved_list = self.directory.copy_files_to_managed_path(self.destination, session)
+            self.files_moved_list = self.directory.copy_files_to_managed_path(self.destination, session, self.id)
         else:
-            self.files_moved_list = self.directory.copy_directory_to_new_path(self.destination, session)
+            self.files_moved_list = self.directory.copy_directory_to_new_path(self.destination, session, self.id)
 
         self.files_moved = len(self.files_moved_list)
         self.logger.info("Copied {} files.".format(self.files_moved))

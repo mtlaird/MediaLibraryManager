@@ -8,7 +8,7 @@ from os import stat, listdir, mkdir
 from os.path import isfile, isdir
 
 import humanfriendly
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, ForeignKey
 
 from MediaLibraryManager.Sql.Main import Base, BaseMixin
 from MediaLibraryManager.Sql.FileTags import FileTag, Tag
@@ -27,6 +27,7 @@ class File(BaseMixin, Base):
     extension = Column(String)
     orig_path = Column(String)
     orig_filename = Column(String)
+    scan_id = Column(Integer, ForeignKey('directoryscan.id'))
 
     def __init__(self, path, get_md5=False):
 
@@ -40,6 +41,7 @@ class File(BaseMixin, Base):
             self.ctime = stat_results.st_ctime
             self.filename = self.full_path.split('/')[-1]
             self.path = '/'.join(self.full_path.split('/')[:-1]) + '/'
+            self.scan_id = None
             if not get_md5:
                 self.md5 = None
             else:
@@ -107,7 +109,7 @@ class File(BaseMixin, Base):
         elif time_type == 'ctime':
             return convert_epoch_to_friendly_date(self.ctime)
 
-    def copy_file_to_new_path(self, new_path, session=None):
+    def copy_file_to_new_path(self, new_path, session=None, scan_id=None):
         current_path = self.path + self.filename
         shutil.copy2(current_path, new_path)
 
@@ -115,10 +117,11 @@ class File(BaseMixin, Base):
             new_file = File(new_path + "/" + self.filename)
             new_file.orig_filename = self.filename
             new_file.orig_path = self.path
+            new_file.scan_id = scan_id if scan_id else None
             new_file.add_to_db(session)
             return new_file
 
-    def copy_file_to_managed_path(self, new_path, session=None):
+    def copy_file_to_managed_path(self, new_path, session=None, scan_id=None):
         current_path = self.path + self.filename
         if not self.md5:
             raise TypeError
@@ -135,6 +138,7 @@ class File(BaseMixin, Base):
             new_file = File(new_path, get_md5=True)
             new_file.orig_filename = self.filename
             new_file.orig_path = self.path
+            new_file.scan_id = scan_id if scan_id else None
             new_file.add_to_db(session)
             return new_file
 
@@ -249,13 +253,15 @@ class Directory(BaseMixin, Base):
         self.set_scan_time()
         self.size = self.get_total_size()
 
-    def add_files_to_db(self, session):
+    def add_files_to_db(self, session, scan_id=None):
 
         for f in self.files:
+            if scan_id:
+                self.files[f].scan_id = scan_id
             self.files[f].add_to_db(session)
 
         for d in self.directories:
-            self.directories[d].add_files_to_db(session)
+            self.directories[d].add_files_to_db(session, scan_id)
 
     def custom_pre_add(self, session):
 
@@ -278,7 +284,7 @@ class Directory(BaseMixin, Base):
             return self.path
 
     # Copies files into a new directory, while preserving subdirectory structure
-    def copy_directory_to_new_path(self, new_path, session=None):
+    def copy_directory_to_new_path(self, new_path, session=None, scan_id=None):
 
         files_copied_list = []
 
@@ -286,17 +292,17 @@ class Directory(BaseMixin, Base):
             mkdir(new_path)
 
         for f in self.files:
-            files_copied_list.append(self.files[f].copy_file_to_new_path(new_path, session))
+            files_copied_list.append(self.files[f].copy_file_to_new_path(new_path, session, scan_id))
 
         for d in self.directories:
             subdir = self.directories[d].get_subdir(self.path)
-            files_copied_list += self.directories[d].copy_directory_to_new_path(new_path + subdir, session)
+            files_copied_list += self.directories[d].copy_directory_to_new_path(new_path + subdir, session, scan_id)
 
         self.increment_files_moved(len(files_copied_list))
         return files_copied_list
 
     # Copies all files into a new directory, without preserving subdirectory structure
-    def copy_files_to_new_path(self, new_path, session=None):
+    def copy_files_to_new_path(self, new_path, session=None, scan_id=None):
 
         files_copied_list = []
 
@@ -304,16 +310,16 @@ class Directory(BaseMixin, Base):
             mkdir(new_path)
 
         for f in self.files:
-            files_copied_list.append(self.files[f].copy_file_to_new_path(new_path, session))
+            files_copied_list.append(self.files[f].copy_file_to_new_path(new_path, session, scan_id))
 
         for d in self.directories:
-            files_copied_list += self.directories[d].copy_files_to_new_path(new_path, session)
+            files_copied_list += self.directories[d].copy_files_to_new_path(new_path, session, scan_id)
 
         self.increment_files_moved(len(files_copied_list))
         return files_copied_list
 
     # Copies all files into a new directory, managing the subdirectory structure using file hashes
-    def copy_files_to_managed_path(self, new_path, session=None):
+    def copy_files_to_managed_path(self, new_path, session=None, scan_id=None):
 
         files_copied_list = []
 
@@ -322,12 +328,12 @@ class Directory(BaseMixin, Base):
 
         for f in self.files:
             try:
-                files_copied_list.append(self.files[f].copy_file_to_managed_path(new_path, session))
+                files_copied_list.append(self.files[f].copy_file_to_managed_path(new_path, session, scan_id))
             except TypeError:
                 self.logger.error("Could not copy file {} - no md5 found!".format(f))
 
         for d in self.directories:
-            files_copied_list += self.directories[d].copy_files_to_managed_path(new_path, session)
+            files_copied_list += self.directories[d].copy_files_to_managed_path(new_path, session, scan_id)
 
         self.increment_files_moved(len(files_copied_list))
         return files_copied_list

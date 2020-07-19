@@ -23,14 +23,6 @@ if __name__ == '__main__':
         scan.destination = config.dest_dir
         scan.move_type = dir_config.move_type
         scan.thumbnail_dir = config.thumbnail_dir
-        get_md5 = config.get_md5
-        scan.run_scan(get_md5, session)
-        if (scan.move_type not in [None, "none"]) and scan.destination is not None:
-            scan.copy_files(session)
-            scan.add_images_to_db(session)
-        else:
-            scan.add_directory_to_db(session)
-            scan.add_images_to_db(session, scanned_files=True)
-        scan.add_scan_to_db(session)
+        scan.full_scan(session, dir_config.get_md5)
 
     logger.info("Complete!")
