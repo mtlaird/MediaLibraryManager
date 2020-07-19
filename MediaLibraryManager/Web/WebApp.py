@@ -2,8 +2,8 @@ import logging
 import mimetypes
 import urllib.parse
 
-from MediaLibraryManager.Sql.FileSystem import DirectorySql, FileSql
-from MediaLibraryManager.Sql.LibraryImage import LibraryImage
+from MediaLibraryManager.Sql.FileSystem import Directory, File
+from MediaLibraryManager.Sql.LibraryImage import Image
 from MediaLibraryManager.Sql.Main import create_database
 from flask import Flask, render_template, send_file, request
 
@@ -37,7 +37,7 @@ def files():
 def directories():
 
     session = setup_session()
-    db_directories = session.query(DirectorySql).all()
+    db_directories = Directory.select_all(session)
 
     return render_template('directories.html', directories=db_directories)
 
@@ -55,7 +55,7 @@ def directory_scans():
 def images():
 
     session = setup_session()
-    db_images = session.query(LibraryImage).all()
+    db_images = Image.select_all(session)
 
     return render_template('images.html', images=db_images)
 
@@ -64,7 +64,7 @@ def images():
 def image_gallery():
 
     session = setup_session()
-    db_images = session.query(LibraryImage).all()
+    db_images = Image.select_all(session)
 
     return render_template('gallery.html', images=db_images)
 
@@ -73,16 +73,16 @@ def image_gallery():
 def directory_gallery_id(directory_id):
 
     session = setup_session()
-    db_dir = session.query(DirectorySql).filter(DirectorySql.id == directory_id).one()
-    db_subdirs = session.query(FileSql).filter(FileSql.path.like(db_dir.path + '%')).distinct(FileSql.path).\
-        with_entities(FileSql.path).all()
+    db_dir = session.query(Directory).filter(Directory.id == directory_id).one()
+    db_subdirs = session.query(File).filter(File.path.like(db_dir.path + '%')).distinct(File.path).\
+        with_entities(File.path).all()
     processed_subdirs = []
     for sd in db_subdirs:
         psd = {'path_str': sd[0], 'path_url': '/gallery/directory?path=' + urllib.parse.quote_plus(sd[0])}
         if psd['path_str'] != db_dir.path:
             processed_subdirs.append(psd)
-    db_images = session.query(LibraryImage, FileSql).filter(LibraryImage.file_id == FileSql.id)\
-        .filter(FileSql.path.like(db_dir.path + '%'))
+    db_images = session.query(Image, File).filter(Image.file_id == File.id)\
+        .filter(File.path.like(db_dir.path + '%'))
 
     return render_template('dir_gallery.html', images=db_images, main_dir=db_dir.path, subdirs=processed_subdirs)
 
@@ -93,15 +93,15 @@ def directory_gallery_path():
     directory_path = urllib.parse.unquote_plus(request.args.get('path'))
 
     session = setup_session()
-    db_subdirs = session.query(FileSql).filter(FileSql.path.like(directory_path + '%')).distinct(FileSql.path).\
-        with_entities(FileSql.path).all()
+    db_subdirs = session.query(File).filter(File.path.like(directory_path + '%')).distinct(File.path).\
+        with_entities(File.path).all()
     processed_subdirs = []
     for sd in db_subdirs:
         psd = {'path_str': sd[0], 'path_url': '/gallery/directory?path=' + urllib.parse.quote_plus(sd[0])}
         if psd['path_str'] != directory_path:
             processed_subdirs.append(psd)
-    db_images = session.query(LibraryImage, FileSql).filter(LibraryImage.file_id == FileSql.id)\
-        .filter(FileSql.path.like(directory_path + '%'))
+    db_images = session.query(Image, File).filter(Image.file_id == File.id)\
+        .filter(File.path.like(directory_path + '%'))
 
     return render_template('dir_gallery.html', images=db_images, main_dir=directory_path, subdirs=processed_subdirs)
 
@@ -110,7 +110,7 @@ def directory_gallery_path():
 def image_view(image_id):
 
     session = setup_session()
-    db_image = session.query(LibraryImage).filter(LibraryImage.id == image_id).one()
+    db_image = session.query(Image).filter(Image.id == image_id).one()
 
     return render_template('image_view.html', image=db_image)
 
@@ -119,7 +119,7 @@ def image_view(image_id):
 def serve_image(image_id):
 
     session = setup_session()
-    db_image = session.query(LibraryImage).filter(LibraryImage.id == image_id).one()
+    db_image = session.query(Image).filter(Image.id == image_id).one()
 
     return send_file(db_image.file_info.path + db_image.file_info.filename,
                      mimetypes.guess_type(db_image.file_info.filename)[0])
@@ -129,6 +129,6 @@ def serve_image(image_id):
 def serve_thumbnail(image_id):
 
     session = setup_session()
-    db_image = session.query(LibraryImage).filter(LibraryImage.id == image_id).one()
+    db_image = session.query(Image).filter(Image.id == image_id).one()
 
     return send_file(db_image.thumbnail_path, mimetypes.guess_type(db_image.file_info.filename)[0])

@@ -4,16 +4,14 @@ import time
 from sqlalchemy import Column, Integer, String
 from PIL import UnidentifiedImageError
 
-from MediaLibraryManager.Sql.FileSystem import DirectorySql
-from MediaLibraryManager.Sql.Main import Base
-from MediaLibraryManager.Sql.LibraryImage import LibraryImage
+from MediaLibraryManager.Sql.FileSystem import Directory
+from MediaLibraryManager.Sql.Main import Base, BaseMixin
+from MediaLibraryManager.Sql.LibraryImage import Image
 from MediaLibraryManager.util import *
 
 
-class DirectoryScan(Base):
-    __tablename__ = 'directory_scans'
+class DirectoryScan(BaseMixin, Base):
 
-    id = Column(Integer, primary_key=True)
     path = Column(String)
     start_time = Column(Integer)
     end_time = Column(Integer)
@@ -45,11 +43,11 @@ class DirectoryScan(Base):
     def directory_init(self, get_md5=False, session=None):
 
         if session:
-            self.directory = session.query(DirectorySql).filter(DirectorySql.path == self.path).one_or_none()
+            self.directory = session.query(Directory).filter(Directory.path == self.path).one_or_none()
 
         if not self.directory:
             try:
-                self.directory = DirectorySql(self.path)
+                self.directory = Directory(self.path)
             except NotADirectoryError:
                 raise
         else:
@@ -81,11 +79,6 @@ class DirectoryScan(Base):
         self.directory.add_to_db(session)
         self.directory.add_files_to_db(session)
 
-    def add_to_db(self, session):
-
-        session.add(self)
-        session.commit()
-
     def copy_files(self, session):
 
         self.logger.info("Copying files to {} ...".format(self.destination))
@@ -111,7 +104,7 @@ class DirectoryScan(Base):
             files_list += all_files_in_dir
         for f in files_list:
             try:
-                i = LibraryImage(f.id, f.path + f.filename)
+                i = Image(f.id, f.path + f.filename)
                 self.logger.debug("Successfully created image from file: {}".format(f.path + f.filename))
             except UnidentifiedImageError:
                 self.logger.debug("Failed to create image from file: {}".format(f.path + f.filename))

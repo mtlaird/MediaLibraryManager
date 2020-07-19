@@ -10,15 +10,13 @@ from os.path import isfile, isdir
 import humanfriendly
 from sqlalchemy import Column, Integer, String
 
-from MediaLibraryManager.Sql.Main import Base
+from MediaLibraryManager.Sql.Main import Base, BaseMixin
 from MediaLibraryManager.Sql.FileTags import FileTag, Tag
 from MediaLibraryManager.util import *
 
 
-class FileSql(Base):
-    __tablename__ = 'files'
+class File(BaseMixin, Base):
 
-    id = Column(Integer, primary_key=True)
     path = Column(String)
     md5 = Column(String)
     filename = Column(String)
@@ -68,23 +66,17 @@ class FileSql(Base):
 
         return self.convert_friendly_time(self.ctime)
 
-    def add_to_db(self, session):
-
-        if not self.id:
-            session.add(self)
-            session.commit()
-
     def check_in_db(self, session, include_md5=False):
 
         if not include_md5:
-            r = session.query(FileSql).\
-                filter(FileSql.filename == self.filename).\
-                filter(FileSql.path == self.path)
+            r = session.query(File).\
+                filter(File.filename == self.filename).\
+                filter(File.path == self.path)
         else:
-            r = session.query(FileSql).\
-                filter(FileSql.filename == self.filename).\
-                filter(FileSql.path == self.path).\
-                filter(FileSql.md5 == self.md5)
+            r = session.query(File).\
+                filter(File.filename == self.filename).\
+                filter(File.path == self.path).\
+                filter(File.md5 == self.md5)
 
         if r.count() == 1:
             return True
@@ -120,7 +112,7 @@ class FileSql(Base):
         shutil.copy2(current_path, new_path)
 
         if session:
-            new_file = FileSql(new_path + "/" + self.filename)
+            new_file = File(new_path + "/" + self.filename)
             new_file.orig_filename = self.filename
             new_file.orig_path = self.path
             new_file.add_to_db(session)
@@ -140,7 +132,7 @@ class FileSql(Base):
         shutil.copy2(current_path, new_path)
 
         if session:
-            new_file = FileSql(new_path, get_md5=True)
+            new_file = File(new_path, get_md5=True)
             new_file.orig_filename = self.filename
             new_file.orig_path = self.path
             new_file.add_to_db(session)
@@ -166,11 +158,8 @@ class FileSql(Base):
         session.commit()
 
 
-class DirectorySql(Base):
+class Directory(BaseMixin, Base):
 
-    __tablename__ = 'directories'
-
-    id = Column(Integer, primary_key=True)
     path = Column(String)
     times_scanned = Column(Integer)
     last_scan_time = Column(Integer)
@@ -204,11 +193,11 @@ class DirectorySql(Base):
             full_path = self.path + '/' + c
 
             if isdir(full_path):
-                self.directories[c] = DirectorySql(full_path)
+                self.directories[c] = Directory(full_path)
                 self.directories[c].get_dir_contents(get_md5)
             elif isfile(full_path):
                 if full_path.split('.')[-1] not in self.ignored_filetypes:
-                    self.files[c] = FileSql(full_path, get_md5)
+                    self.files[c] = File(full_path, get_md5)
 
     def get_all_files(self):
         files_list = []
@@ -268,7 +257,7 @@ class DirectorySql(Base):
         for d in self.directories:
             self.directories[d].add_files_to_db(session)
 
-    def add_to_db(self, session):
+    def custom_pre_add(self, session):
 
         if not self.id:
             self.times_scanned = 1
@@ -279,9 +268,6 @@ class DirectorySql(Base):
                 self.files_scanned = self.get_total_files()
             else:
                 self.files_scanned += self.get_total_files()
-
-        session.add(self)
-        session.commit()
 
     def get_subdir(self, base_path):
 

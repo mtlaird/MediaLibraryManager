@@ -2,14 +2,13 @@ from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm.exc import NoResultFound
 
-from MediaLibraryManager.Sql.Main import Base
+from MediaLibraryManager.Sql.Main import Base, BaseMixin
 
 
-class FileTag(Base):
-    __tablename__ = 'files_tags'
+class FileTag(BaseMixin, Base):
 
-    file_id = Column(Integer, ForeignKey('files.id'), primary_key=True)
-    tag_id = Column(Integer, ForeignKey('tags.id'), primary_key=True)
+    file_id = Column(Integer, ForeignKey('file.id'))
+    tag_id = Column(Integer, ForeignKey('tag.id'))
 
     relationship('Tag')
 
@@ -23,10 +22,8 @@ class FileTag(Base):
         return session.query(FileTag).filter(FileTag.file_id == file_id).all()
 
 
-class Tag(Base):
-    __tablename__ = 'tags'
+class Tag(BaseMixin, Base):
 
-    id = Column(Integer, primary_key=True)
     type = Column(String)
     value = Column(String)
 
@@ -44,4 +41,3 @@ class Tag(Base):
             session.add(new_tag)
             session.commit()
             return new_tag
-
