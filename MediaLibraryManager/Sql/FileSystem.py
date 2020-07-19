@@ -11,6 +11,7 @@ import humanfriendly
 from sqlalchemy import Column, Integer, String
 
 from MediaLibraryManager.Sql.Main import Base
+from MediaLibraryManager.Sql.FileTags import FileTag, Tag
 from MediaLibraryManager.util import *
 
 
@@ -144,6 +145,25 @@ class FileSql(Base):
             new_file.orig_path = self.path
             new_file.add_to_db(session)
             return new_file
+
+    def get_tags(self, session):
+
+        return FileTag.get_tags_by_file_id(session, self.id)
+
+    def add_tag_by_id(self, session, tag_id):
+
+        self._add_tag(session, tag_id)
+
+    def add_tag_by_values(self, session, tag_name, tag_value):
+
+        tag = Tag.get_or_create(session, tag_name, tag_value)
+        self._add_tag(session, tag.id)
+
+    def _add_tag(self, session, tag_id):
+
+        file_tag = FileTag(file_id=self.id, tag_id=tag_id)
+        session.add(file_tag)
+        session.commit()
 
 
 class DirectorySql(Base):
