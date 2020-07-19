@@ -3,7 +3,14 @@
 # log_dir = "logs"
 log_level = "debug"
 # dest_dir = "dstFolder"
-move_type = "none"
-# ignored_filetypes = []
 # db_name = "mlm-db"
 # thumbnail_dir = "thumbnails"
+
+[directories]
+
+ [directories.d1]
+
+ path = "F:/Pictures/New Camera/2012-07-20 second batch"
+ move_type = "none"
+# get_md5 = "false"
+# ignored_filetypes = ["CR2"]

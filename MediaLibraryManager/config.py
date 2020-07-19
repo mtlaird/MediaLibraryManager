@@ -24,6 +24,16 @@ def set_up_logging(config, single_run=True):
 
 
 class MediaLibraryManagerConfig:
+
+    class DirectoryConfig:
+
+        def __init__(self, config):
+
+            self.path = config['path']
+            self.move_type = 'keep' if 'move_type' not in config else config['move_type']
+            self.ignored_filetypes = [] if 'ignored_filetypes' not in config else config['ignored_filetypes']
+            self.get_md5 = False if 'get_md5' not in config else config['get_md5']
+
     def __init__(self, filename=None):
         if not filename:
             filename = 'mlm-config.toml'
@@ -31,11 +41,9 @@ class MediaLibraryManagerConfig:
         self.log_dir = 'logs'
         self.log_level = 'info'
         self.dest_dir = 'dstFolder'
-        self.move_type = 'keep'
         self.db_name = 'db'
-        self.get_md5 = False
         self.thumbnail_dir = 'thumbnails'
-        self.ignored_filetypes = []
+        self.directories = {}
         with open(self.filename) as f:
             self.toml = toml.load(f)
 
@@ -48,16 +56,13 @@ class MediaLibraryManagerConfig:
             self.log_level = self.toml['config']['log_level']
         if 'dest_dir' in self.toml['config']:
             self.dest_dir = self.toml['config']['dest_dir']
-        if 'move_type' in self.toml['config']:
-            self.move_type = self.toml['config']['move_type']
         if 'db_name' in self.toml['config']:
             self.db_name = self.toml['config']['db_name']
-        if 'get_md5' in self.toml['config']:
-            self.get_md5 = self.toml['config']['get_md5']
         if 'thumbnail_dir' in self.toml['config']:
             self.thumbnail_dir = self.toml['config']['thumbnail_dir']
-        if 'ignored_filetypes' in self.toml['config']:
-            self.ignored_filetypes = self.toml['config']['ignored_filetypes']
+
+        for directory in self.toml['directories']:
+            self.directories[directory] = self.DirectoryConfig(self.toml['directories'][directory])
 
     def generate_logfile_name(self, single_run=True):
         if single_run:
