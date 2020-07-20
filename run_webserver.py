@@ -11,4 +11,4 @@ if __name__ == '__main__':
     logger.info("Loaded config from {} ...".format(config.filename))
 
     app.root_path = getcwd()
-    app.run(port=5056)
+    app.run(port=config.web_port)

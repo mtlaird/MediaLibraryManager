@@ -44,6 +44,7 @@ class MediaLibraryManagerConfig:
         self.db_name = 'db'
         self.thumbnail_dir = 'thumbnails'
         self.directories = {}
+        self.web_port = 5056
         with open(self.filename) as f:
             self.toml = toml.load(f)
 
@@ -60,6 +61,8 @@ class MediaLibraryManagerConfig:
             self.db_name = self.toml['config']['db_name']
         if 'thumbnail_dir' in self.toml['config']:
             self.thumbnail_dir = self.toml['config']['thumbnail_dir']
+        if 'port' in self.toml['webapp']:
+            self.web_port = self.toml['webapp']['port']
 
         for directory in self.toml['directories']:
             self.directories[directory] = self.DirectoryConfig(self.toml['directories'][directory])

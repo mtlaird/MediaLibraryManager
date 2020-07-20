@@ -6,12 +6,16 @@ log_level = "debug"
 # db_name = "mlm-db"
 # thumbnail_dir = "thumbnails"
 
+[webapp]
+
+# port = 5056
+
 [directories]
 
  [directories.test]
 
  path = "TestFolder"
  # Possible values for 'move_type' are 'keep', 'managed', 'flatten', and 'none'
- move_type = "flatten"
+# move_type = "none"
  get_md5 = "true"
 # ignored_filetypes = ["CR2"]
