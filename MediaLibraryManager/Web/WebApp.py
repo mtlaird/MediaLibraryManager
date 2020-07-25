@@ -115,6 +115,20 @@ def image_view(image_id):
     return render_template('image_view.html', image=db_image)
 
 
+@app.route('/images/manage/<image_id>', methods=['GET', 'POST'])
+def image_manage(image_id):
+
+    session = setup_session()
+    db_image = session.query(Image).filter(Image.id == image_id).one()
+    file_tags = db_image.file_info.get_tags(session)
+    if request.method == 'POST':
+        # form data is passed as an immutable multi-dict and needs to be coerced into a more usable type
+        form_data = {x: request.form[x] for x in request.form}
+        db_image.file_info.add_tag_by_values(session, **form_data)
+
+    return render_template('image_manage.html', image=db_image, file_tags=file_tags)
+
+
 @app.route('/images/id/<image_id>')
 def serve_image(image_id):
 

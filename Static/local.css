@@ -60,8 +60,12 @@ footer {
   color: white;
 }
 
-table, th, td {
-  border: 1px solid black;
+/*table, th, td {*/
+/*  border: 1px solid black;*/
+/*}*/
+
+table, th, td.clean {
+  border: 0;
 }
 
 span.gallery-tile {

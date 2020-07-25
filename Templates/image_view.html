@@ -8,12 +8,12 @@
 
     <section>
       <nav>
-          <p><b>Navigation:</b>
+          <p><b>Navigation:</b></p>
           <ul>
             <li><a href="/gallery">Gallery</a></li>
+            <li><a href="/image/manage/{{ image.id }}">Manage</a></li>
           </ul>
-          </p>
-          <p><b>Image info:</b><br>
+          <p><b>Image info:</b></p>
           <ul>
             <li>Filename: {{ image.file_info.filename }}</li>
             <li>Height: {{ image.height }}</li>
@@ -21,7 +21,6 @@
             <li>Size: {{ image.file_info.get_friendly_size() }}</li>
             <li>Created: {{ image.file_info.get_friendly_created_time() }}</li>
           </ul>
-          </p>
       </nav>
 
       <article class="image">

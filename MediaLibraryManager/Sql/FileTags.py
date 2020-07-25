@@ -10,7 +10,7 @@ class FileTag(BaseMixin, Base):
     file_id = Column(Integer, ForeignKey('file.id'))
     tag_id = Column(Integer, ForeignKey('tag.id'))
 
-    relationship('Tag')
+    tag = relationship('Tag')
 
     def __init__(self, **kwargs):
 

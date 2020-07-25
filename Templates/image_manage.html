@@ -1,0 +1,58 @@
+{%  extends 'base.html' %}
+
+{% block content %}
+
+    <header>
+      <h2>Image View</h2>
+    </header>
+
+    <section>
+      <nav>
+          <p><b>Navigation:</b></p>
+          <ul>
+            <li><a href="/gallery">Gallery</a></li>
+            <li><a href="/images/view/{{ image.id }}">View</a></li>
+          </ul>
+          <p><b>Image info:</b></p>
+          <ul>
+            <li>Filename: {{ image.file_info.filename }}</li>
+            <li>Height: {{ image.height }}</li>
+            <li>Width: {{ image.height }}</li>
+            <li>Size: {{ image.file_info.get_friendly_size() }}</li>
+            <li>Created: {{ image.file_info.get_friendly_created_time() }}</li>
+          </ul>
+          <p><b>Tags:</b></p>
+          <ul>
+          {% for ft in file_tags %}
+              <li><b>{{ ft.tag.type }}</b>: {{ ft.tag.value }}</li>
+          {% endfor %}
+          </ul>
+          <p><b>Add new tag:</b></p>
+          <form method="post">
+              <table class="clean">
+                  <tr>
+                      <td class="clean"><label for="name_input">Type:</label></td>
+                      <td class="clean"><input type="text" name="tag_name" id="name_input"></td>
+                  </tr>
+                  <tr>
+                      <td class="clean"><label for="value_input">Value:</label></td>
+                      <td class="clean"><input type="text" name="tag_value" id="value_input"></td>
+                  </tr>
+                  <tr>
+                      <td class="clean"><input type="submit" value="add"></td>
+                  </tr>
+              </table>
+
+          </form>
+      </nav>
+
+      <article class="image">
+          <a href="/images/id/{{ image.id }}"><img src="/images/id/{{ image.id }}" title="{{ image.file_info.filename }}" alt="not found"></a>
+      </article>
+    </section>
+
+    <footer>
+      <p>Footer</p>
+    </footer>
+
+{% endblock %}
