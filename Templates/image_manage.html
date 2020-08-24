@@ -28,11 +28,18 @@
           {% endfor %}
           </ul>
           <p><b>Add new tag:</b></p>
+          <datalist id="tag_types">
+              {% if tag_types %}
+                {% for tt in tag_types %}
+                  <option value="{{ tt[0] }}">
+                {% endfor %}
+              {% endif %}
+          </datalist>
           <form method="post">
               <table class="clean">
                   <tr>
                       <td class="clean"><label for="name_input">Type:</label></td>
-                      <td class="clean"><input type="text" name="tag_name" id="name_input"></td>
+                      <td class="clean"><input type="text" name="tag_name" list="tag_types" id="name_input"></td>
                   </tr>
                   <tr>
                       <td class="clean"><label for="value_input">Value:</label></td>

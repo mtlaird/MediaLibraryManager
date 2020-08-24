@@ -4,6 +4,7 @@ import urllib.parse
 
 from MediaLibraryManager.Sql.FileSystem import Directory, File
 from MediaLibraryManager.Sql.LibraryImage import Image
+from MediaLibraryManager.Sql.FileTags import Tag
 from MediaLibraryManager.Sql.Main import create_database
 from flask import Flask, render_template, send_file, request
 
@@ -120,13 +121,14 @@ def image_manage(image_id):
 
     session = setup_session()
     db_image = session.query(Image).filter(Image.id == image_id).one()
-    file_tags = db_image.file_info.get_tags(session)
+    tag_types = Tag.get_types(session)
     if request.method == 'POST':
         # form data is passed as an immutable multi-dict and needs to be coerced into a more usable type
         form_data = {x: request.form[x] for x in request.form}
         db_image.file_info.add_tag_by_values(session, **form_data)
+    file_tags = db_image.file_info.get_tags(session)
 
-    return render_template('image_manage.html', image=db_image, file_tags=file_tags)
+    return render_template('image_manage.html', image=db_image, file_tags=file_tags, tag_types=tag_types)
 
 
 @app.route('/images/id/<image_id>')

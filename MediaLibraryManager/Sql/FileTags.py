@@ -41,3 +41,13 @@ class Tag(BaseMixin, Base):
             session.add(new_tag)
             session.commit()
             return new_tag
+
+    @classmethod
+    def get_types(cls, session):
+
+        return session.query(Tag.type).distinct().all()
+
+    @classmethod
+    def get_values_by_type(cls, session, tag_type):
+
+        return session.query(Tag.value).filter(Tag.type == tag_type).distinct().all()
