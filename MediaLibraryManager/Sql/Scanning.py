@@ -29,6 +29,7 @@ class DirectoryScan(BaseMixin, Base):
         self.path = path
         self.directory = None
         self.files_found = 0
+        self.files_moved = 0
         self.subdirs_found = 0
         self.total_size = 0
         self.logger = None
@@ -46,17 +47,20 @@ class DirectoryScan(BaseMixin, Base):
             self.directory = session.query(Directory).filter(Directory.path == self.path).one_or_none()
 
         if not self.directory:
+            self.logger.info("Directory not found in database, creating new directory object...")
             try:
                 self.directory = Directory(self.path)
             except NotADirectoryError:
                 raise
         else:
             self.directory.__init__(self.path, self.ignored_filetypes)
+            self.logger.info("Directory object found in database, last scanned at {}".format(
+                convert_epoch_to_friendly_date(self.directory.last_scan_time)))
         self.directory.run_scan(get_md5)
 
     def run_scan(self, get_md5=False, session=None):
 
-        self.logger.info("Creating directory object for directory \"{dir}\" ...".format(dir=self.path))
+        self.logger.info("Creating directory object for directory '{dir}' ...".format(dir=self.path))
         self.directory_init(get_md5, session)
 
         self.logger.info("Total directory size: {}".format(
@@ -69,16 +73,19 @@ class DirectoryScan(BaseMixin, Base):
 
     def process_files(self, session):
 
+        self.add_directory_to_db(session)
         if (self.move_type not in [None, "none"]) and self.destination is not None:
             self.copy_files(session)
             self.add_images_to_db(session)
         else:
-            self.add_directory_to_db(session)
             self.add_images_to_db(session, scanned_files=True)
 
     def finish_scan(self, session):
 
-        self.logger.info("Finishing scan to database...")
+        self.logger.info("Updating finished scan in database...")
+        self.directory.set_scan_time()
+        self.directory.files_moved += self.files_moved
+        self.directory.update_in_db(session)
         self.end_time = trunc(time.time())
         self.update_in_db(session)
 
@@ -100,13 +107,13 @@ class DirectoryScan(BaseMixin, Base):
         self.logger.info("Copying files to {} ...".format(self.destination))
 
         if self.move_type == "flatten":
-            self.files_moved_list = self.directory.copy_files_to_new_path(self.destination, session, self.id)
+            self.directory.copy_files_to_new_path(self.destination, session, self.id)
         elif self.move_type == "managed":
-            self.files_moved_list = self.directory.copy_files_to_managed_path(self.destination, session, self.id)
+            self.directory.copy_files_to_managed_path(self.destination, session, self.id)
         else:
-            self.files_moved_list = self.directory.copy_directory_to_new_path(self.destination, session, self.id)
+            self.directory.copy_directory_to_new_path(self.destination, session, self.id)
 
-        self.files_moved = len(self.files_moved_list)
+        self.files_moved = self.directory.files_moved_this_scan
         self.logger.info("Copied {} files.".format(self.files_moved))
         return self.files_moved
 

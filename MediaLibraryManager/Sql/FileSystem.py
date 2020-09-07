@@ -161,6 +161,16 @@ class File(BaseMixin, Base):
         session.add(file_tag)
         session.commit()
 
+    def compare_mtime(self, mtime=None):
+
+        if not mtime:
+            return True
+
+        if mtime < self.mtime:
+            return True
+
+        return False
+
 
 class Directory(BaseMixin, Base):
 
@@ -180,6 +190,11 @@ class Directory(BaseMixin, Base):
         self.files = {}
         self.directories = {}
         self.size = 0
+        self.files_moved_this_scan = 0
+        if not self.last_scan_time:
+            self.last_scan_time = 0
+        if not self.files_moved:
+            self.files_moved = 0
         if not ignored_filetypes:
             self.ignored_filetypes = []
         else:
@@ -250,7 +265,6 @@ class Directory(BaseMixin, Base):
     def run_scan(self, get_md5=False):
 
         self.get_dir_contents(get_md5)
-        self.set_scan_time()
         self.size = self.get_total_size()
 
     def add_files_to_db(self, session, scan_id=None):
@@ -284,66 +298,77 @@ class Directory(BaseMixin, Base):
             return self.path
 
     # Copies files into a new directory, while preserving subdirectory structure
-    def copy_directory_to_new_path(self, new_path, session=None, scan_id=None):
+    def copy_directory_to_new_path(self, new_path, session=None, scan_id=None, last_scan_time=None):
 
-        files_copied_list = []
-
+        if not last_scan_time:
+            last_scan_time = self.last_scan_time
+        self.logger.info("adding directory '{}' ...".format(self.path))
         if not isdir(new_path):
             mkdir(new_path)
 
         for f in self.files:
-            files_copied_list.append(self.files[f].copy_file_to_new_path(new_path, session, scan_id))
+            if self.files[f].mtime > last_scan_time:
+                self.logger.info("adding file '{}' ...".format(f))
+                self.files[f].copy_file_to_new_path(new_path, session, scan_id)
+                self.increment_files_moved(1)
+            else:
+                self.logger.info("skipping file '{}' due to mtime: {} is less than {}".
+                                 format(f, trunc(self.files[f].mtime), last_scan_time))
 
         for d in self.directories:
             subdir = self.directories[d].get_subdir(self.path)
-            files_copied_list += self.directories[d].copy_directory_to_new_path(new_path + subdir, session, scan_id)
-
-        self.increment_files_moved(len(files_copied_list))
-        return files_copied_list
+            self.directories[d].copy_directory_to_new_path(new_path + subdir, session, scan_id, last_scan_time)
+            self.increment_files_moved(self.directories[d].files_moved_this_scan)
 
     # Copies all files into a new directory, without preserving subdirectory structure
-    def copy_files_to_new_path(self, new_path, session=None, scan_id=None):
+    def copy_files_to_new_path(self, new_path, session=None, scan_id=None, last_scan_time=None):
 
-        files_copied_list = []
-
+        if not last_scan_time:
+            last_scan_time = self.last_scan_time
         if not isdir(new_path):
             mkdir(new_path)
 
         for f in self.files:
-            files_copied_list.append(self.files[f].copy_file_to_new_path(new_path, session, scan_id))
+            if self.files[f].mtime < last_scan_time:
+                self.files[f].copy_file_to_new_path(new_path, session, scan_id)
+                self.increment_files_moved(1)
+            else:
+                self.logger.info("skipping file '{}' due to mtime: {} is less than {}".
+                                 format(f, trunc(self.files[f].mtime), last_scan_time))
 
         for d in self.directories:
-            files_copied_list += self.directories[d].copy_files_to_new_path(new_path, session, scan_id)
-
-        self.increment_files_moved(len(files_copied_list))
-        return files_copied_list
+            self.directories[d].copy_files_to_new_path(new_path, session, scan_id, last_scan_time)
+            self.increment_files_moved(self.directories[d].files_moved_this_scan)
 
     # Copies all files into a new directory, managing the subdirectory structure using file hashes
-    def copy_files_to_managed_path(self, new_path, session=None, scan_id=None):
+    def copy_files_to_managed_path(self, new_path, session=None, scan_id=None, last_scan_time=None):
 
-        files_copied_list = []
-
+        if not last_scan_time:
+            last_scan_time = self.last_scan_time
         if not isdir(new_path):
             mkdir(new_path)
 
         for f in self.files:
-            try:
-                files_copied_list.append(self.files[f].copy_file_to_managed_path(new_path, session, scan_id))
-            except TypeError:
-                self.logger.error("Could not copy file {} - no md5 found!".format(f))
+            if self.files[f].mtime < last_scan_time:
+                try:
+                    self.files[f].copy_file_to_managed_path(new_path, session, scan_id)
+                    self.increment_files_moved(1)
+                except TypeError:
+                    self.logger.error("Could not copy file {} - no md5 found!".format(f))
+            else:
+                self.logger.info("skipping file '{}' due to mtime: {} is less than {}".
+                                 format(f, trunc(self.files[f].mtime), last_scan_time))
 
         for d in self.directories:
-            files_copied_list += self.directories[d].copy_files_to_managed_path(new_path, session, scan_id)
-
-        self.increment_files_moved(len(files_copied_list))
-        return files_copied_list
+            self.directories[d].copy_files_to_managed_path(new_path, session, scan_id, last_scan_time)
+            self.increment_files_moved(self.directories[d].files_moved_this_scan)
 
     def increment_files_moved(self, num_files):
 
-        if not self.files_moved:
-            self.files_moved = num_files
+        if not self.files_moved_this_scan:
+            self.files_moved_this_scan = num_files
         else:
-            self.files_moved += num_files
+            self.files_moved_this_scan += num_files
 
     def get_url_encoded_path(self):
 
