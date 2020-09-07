@@ -14,8 +14,8 @@ log_level = "debug"
 
  [directories.test]
 
- path = "TestFolder"
+ path = "F:/Pictures/Images/Photos"
  # Possible values for 'move_type' are 'keep', 'managed', 'flatten', and 'none'
-# move_type = "none"
+ move_type = "none"
  get_md5 = "true"
-# ignored_filetypes = ["CR2"]
+ ignored_filetypes = ["CR2", "db"]

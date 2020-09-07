@@ -5,3 +5,5 @@ venv/
 logs/*
 dstFolder/*
 thumbnails/*
+mlm-config.toml
+*.pyc
