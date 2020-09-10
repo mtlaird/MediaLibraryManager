@@ -49,7 +49,7 @@ class DirectoryScan(BaseMixin, Base):
         if not self.directory:
             self.logger.info("Directory not found in database, creating new directory object...")
             try:
-                self.directory = Directory(self.path)
+                self.directory = Directory(self.path, self.ignored_filetypes)
             except NotADirectoryError:
                 raise
         else:
