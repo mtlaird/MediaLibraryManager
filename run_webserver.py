@@ -14,4 +14,6 @@ if __name__ == '__main__':
         app.root_path = getcwd()
     else:
         app.root_path = config.web_working_directory
+    app.template_folder = "Templates"
+    app.static_folder = "Static"
     app.run(host=config.web_host, port=config.web_port)
