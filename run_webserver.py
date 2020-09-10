@@ -10,5 +10,8 @@ if __name__ == '__main__':
     logger = set_up_logging(config, single_run=False)
     logger.info("Loaded config from {} ...".format(config.filename))
 
-    app.root_path = getcwd()
+    if config.web_working_directory != "":
+        app.root_path = getcwd()
+    else:
+        app.root_path = config.web_working_directory
     app.run(host=config.web_host, port=config.web_port)

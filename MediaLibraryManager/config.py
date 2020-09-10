@@ -46,6 +46,7 @@ class MediaLibraryManagerConfig:
         self.directories = {}
         self.web_port = 5056
         self.web_host = 'localhost'
+        self.web_working_directory = ''
         with open(self.filename) as f:
             self.toml = toml.load(f)
 
@@ -66,6 +67,8 @@ class MediaLibraryManagerConfig:
             self.web_port = self.toml['webapp']['port']
         if 'host' in self.toml['webapp']:
             self.web_host = self.toml['webapp']['host']
+        if 'working_directory' in self.toml['webapp']:
+            self.web_working_directory = self.toml['webapp']['working_directory']
 
         for directory in self.toml['directories']:
             self.directories[directory] = self.DirectoryConfig(self.toml['directories'][directory])

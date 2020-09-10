@@ -10,6 +10,7 @@ log_level = "debug"
 
 # port = 5056
 # host = "localhost"
+# working_directory = ""
 
 [directories]
 
