@@ -9,6 +9,7 @@ log_level = "debug"
 [webapp]
 
 # port = 5056
+# host = "localhost"
 
 [directories]
 
