@@ -22,6 +22,7 @@ class Image(BaseMixin, Base):
     def __init__(self, file_id, path):
         self.logger = logging.getLogger('MediaLibraryManager')
 
+        self.path = path
         self.image = PILImage.open(path)
         self.file_id = file_id
         self.format = self.image.format
@@ -34,7 +35,11 @@ class Image(BaseMixin, Base):
         if not thumbnail_dir:
             thumbnail_dir = 'thumbnails'
 
-        self.image.thumbnail(THUMBNAIL_MAX_SIZE)
+        try:
+            self.image.thumbnail(THUMBNAIL_MAX_SIZE)
+        except OSError:
+            self.logger.error("Could not create thumbnail for image '{}'".format(self.path))
+            return
         self.thumbnail_path = thumbnail_dir + '/' + str(self.file_id) + '.' + self.format.lower()
         self.image.save(self.thumbnail_path)
 
