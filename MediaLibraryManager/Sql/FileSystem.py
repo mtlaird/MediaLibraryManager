@@ -212,7 +212,7 @@ class Directory(BaseMixin, Base):
             full_path = self.path + '/' + c
 
             if isdir(full_path):
-                self.directories[c] = Directory(full_path)
+                self.directories[c] = Directory(full_path, self.ignored_filetypes)
                 self.directories[c].get_dir_contents(get_md5)
             elif isfile(full_path):
                 if full_path.split('.')[-1] not in self.ignored_filetypes:
