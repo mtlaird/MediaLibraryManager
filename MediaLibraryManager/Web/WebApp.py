@@ -128,7 +128,10 @@ def image_view(image_id):
     session = setup_session()
     db_image = session.query(Image).filter(Image.id == image_id).one()
 
-    return render_template('image_view.html', image=db_image)
+    prev_image_id = Image.find_prev_image_id(session, image_id)
+    next_image_id = Image.find_next_image_id(session, image_id)
+
+    return render_template('image_view.html', image=db_image, prev=prev_image_id, next=next_image_id)
 
 
 @app.route('/images/manage/<image_id>', methods=['GET', 'POST'])

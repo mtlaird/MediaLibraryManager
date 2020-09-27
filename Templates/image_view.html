@@ -29,7 +29,12 @@
     </section>
 
     <footer>
-      <p>Footer</p>
+        {% if prev is not none %}
+            <span><a href="/images/view/{{ prev }}">Prev</a></span>
+        {% endif %}
+        {% if next is not none %}
+            <span><a href="/images/view/{{ next }}">Next</a></span>
+        {% endif %}
     </footer>
 
 {% endblock %}

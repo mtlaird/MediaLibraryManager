@@ -2,6 +2,7 @@ import logging
 
 from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
+from sqlalchemy.orm.exc import NoResultFound
 from PIL import Image as PILImage
 
 from MediaLibraryManager.Sql.Main import Base, BaseMixin
@@ -18,6 +19,24 @@ class Image(BaseMixin, Base):
     thumbnail_path = Column(String)
 
     file_info = relationship('File')
+
+    @classmethod
+    def find_next_image_id(cls, session, image_id):
+        try:
+            res = session.query(cls).filter(cls.id > image_id).order_by(cls.id.asc()).first()
+        except NoResultFound:
+            return None
+
+        return res.id
+
+    @classmethod
+    def find_prev_image_id(cls, session, image_id):
+        try:
+            res = session.query(cls).filter(cls.id < image_id).order_by(cls.id.desc()).first()
+        except NoResultFound:
+            return None
+
+        return res.id
 
     def __init__(self, file_id, path):
         self.logger = logging.getLogger('MediaLibraryManager')
