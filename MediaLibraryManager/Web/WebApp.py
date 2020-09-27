@@ -7,6 +7,8 @@ from MediaLibraryManager.Sql.LibraryImage import Image
 from MediaLibraryManager.Sql.FileTags import Tag
 from MediaLibraryManager.Sql.Main import create_database
 from flask import Flask, render_template, send_file, request
+from sqlalchemy.sql import text
+from sqlalchemy.orm.exc import NoResultFound
 
 from MediaLibraryManager.Sql.Scanning import DirectoryScan
 
@@ -89,37 +91,54 @@ def image_gallery():
 def directory_gallery_id(directory_id):
 
     session = setup_session()
-    db_dir = session.query(Directory).filter(Directory.id == directory_id).one()
+    try:
+        db_dir = session.query(Directory).filter(Directory.id == directory_id).one()
+    except NoResultFound:
+        return directories()
     db_subdirs = session.query(File).filter(File.path.like(db_dir.path + '%')).distinct(File.path).\
         with_entities(File.path).all()
     processed_subdirs = []
     for sd in db_subdirs:
-        psd = {'path_str': sd[0], 'path_url': '/gallery/directory?path=' + urllib.parse.quote_plus(sd[0])}
+        root_path_url = '/gallery/directory/{}'.format(db_dir.id)
+        psd = {'path_str': sd[0], 'path_url': '{}?sd='.format(root_path_url) + urllib.parse.quote_plus(sd[0])}
         if psd['path_str'] != db_dir.path:
             processed_subdirs.append(psd)
-    db_images = session.query(Image, File).filter(Image.file_id == File.id)\
-        .filter(File.path.like(db_dir.path + '%'))
+    query = text("select * from image inner join file on file_id = file.id "
+                 "where path like :path")
+    if request.args.get('sd') is not None:
+        subdir_path = urllib.parse.unquote_plus(request.args.get('sd'))
+        db_images = session.execute(query, {"path": subdir_path + "%"}).fetchall()
+    else:
+        db_images = session.execute(query, {"path": db_dir.path + "%"}).fetchall()
+    images_subset, page = get_list_subset(db_images, request)
 
-    return render_template('dir_gallery.html', images=db_images, main_dir=db_dir.path, subdirs=processed_subdirs)
+    return render_template('dir_gallery.html', images=images_subset, main_dir=db_dir.path, subdirs=processed_subdirs,
+                           page=page)
 
 
-@app.route('/gallery/directory')
-def directory_gallery_path():
-
-    directory_path = urllib.parse.unquote_plus(request.args.get('path'))
-
-    session = setup_session()
-    db_subdirs = session.query(File).filter(File.path.like(directory_path + '%')).distinct(File.path).\
-        with_entities(File.path).all()
-    processed_subdirs = []
-    for sd in db_subdirs:
-        psd = {'path_str': sd[0], 'path_url': '/gallery/directory?path=' + urllib.parse.quote_plus(sd[0])}
-        if psd['path_str'] != directory_path:
-            processed_subdirs.append(psd)
-    db_images = session.query(Image, File).filter(Image.file_id == File.id)\
-        .filter(File.path.like(directory_path + '%'))
-
-    return render_template('dir_gallery.html', images=db_images, main_dir=directory_path, subdirs=processed_subdirs)
+# @app.route('/gallery/directory')
+# def directory_gallery_path():
+#
+#     if request.args.get('path') is None:
+#         return directories()
+#
+#     directory_path = urllib.parse.unquote_plus(request.args.get('path'))
+#
+#     session = setup_session()
+#     db_subdirs = session.query(File).filter(File.path.like(directory_path + '%')).distinct(File.path).\
+#         with_entities(File.path).all()
+#     processed_subdirs = []
+#     for sd in db_subdirs:
+#         psd = {'path_str': sd[0], 'path_url': '/gallery/directory?path=' + urllib.parse.quote_plus(sd[0])}
+#         if psd['path_str'] != directory_path:
+#             processed_subdirs.append(psd)
+#     query = text("select * from image inner join file on file_id = file.id "
+#                  "where path like :path")
+#     db_images = session.execute(query, {"path": directory_path+"%"}).fetchall()
+#     images_subset, page = get_list_subset(db_images, request)
+#
+#     return render_template('dir_gallery.html', images=images_subset, main_dir=directory_path, subdirs=processed_subdirs,
+#                            page=page)
 
 
 @app.route('/images/view/<image_id>')

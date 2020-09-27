@@ -1,6 +1,29 @@
 {%  extends 'base.html' %}
 
 {% block content %}
-    <h1>Welcome</h1>
-    <div>Welcome to the Media Library Manager!</div>
+        <header>
+          <h2>Media Library Manager</h2>
+        </header>
+
+        <section>
+          <nav>
+            <ul>
+                <li><a href="#">Nav</a></li>
+                <li><a href="#">Content</a></li>
+                <li><a href="#">Goes</a></li>
+                <li><a href="#">Here</a></li>
+            </ul>
+          </nav>
+          <article>
+            <h1>Welcome</h1>
+            <div>Welcome to the Media Library Manager!</div>
+            <div><a href="/gallery">Gallery</a></div>
+            <div><a href="/directories">Directories</a></div>
+            <div><a href="/directory_scans">Directory Scans</a></div>
+          </article>
+        </section>
+
+        <footer>
+            <div>Footer</div>
+        </footer>
 {% endblock %}

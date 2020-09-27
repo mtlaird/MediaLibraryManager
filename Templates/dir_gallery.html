@@ -20,8 +20,8 @@
       <article>
           {% for image in images %}
           <span class="gallery-tile">
-              <a href="/images/view/{{ image.LibraryImage.id }}">
-                  <img src="/thumbnails/id/{{ image.LibraryImage.id }}" alt="">
+              <a href="/images/view/{{ image.id }}">
+                  <img src="/thumbnails/id/{{ image.id }}" alt="">
               </a>
           </span>
           {% endfor %}
@@ -29,7 +29,12 @@
     </section>
 
     <footer>
-      <p>Footer</p>
+      {% if page is not none %}
+        {% if page > 1 %}
+            <span><a href="?page={{ page - 1 }}">Prev</a></span>
+        {% endif %}
+            <span><a href="?page={{ page + 1 }}">Next</a></span>
+      {% endif %}
     </footer>
 
 {% endblock %}
