@@ -28,7 +28,12 @@
     </section>
 
     <footer>
-      <p>Footer</p>
+      {% if page is not none %}
+        {% if page > 1 %}
+            <span><a href="/gallery?page={{ page - 1 }}">Prev</a></span>
+        {% endif %}
+            <span><a href="/gallery?page={{ page + 1 }}">Next</a></span>
+      {% endif %}
     </footer>
 
 {% endblock %}

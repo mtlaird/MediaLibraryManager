@@ -20,6 +20,20 @@ def setup_session():
     return session()
 
 
+def get_list_subset(image_list, r):
+    page = r.args.get('page') or 1
+    page_results = r.args.get('page_results') or 50
+    if r.args.get('all'):
+        return image_list, None
+
+    try:
+        start = int(page_results) * (int(page) - 1)
+        end = int(page_results) * int(page)
+        return image_list[start:end], int(page)
+    except ValueError:
+        return image_list[0:50], 1
+
+
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -66,8 +80,9 @@ def image_gallery():
 
     session = setup_session()
     db_images = Image.select_all(session)
+    images_subset, page = get_list_subset(db_images, request)
 
-    return render_template('gallery.html', images=db_images)
+    return render_template('gallery.html', images=images_subset, page=page)
 
 
 @app.route('/gallery/directory/<directory_id>')
