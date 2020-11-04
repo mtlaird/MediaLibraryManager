@@ -1,6 +1,7 @@
 import logging
 import mimetypes
 import urllib.parse
+from math import ceil
 
 from MediaLibraryManager.Sql.FileSystem import Directory, File
 from MediaLibraryManager.Sql.LibraryImage import Image
@@ -31,9 +32,10 @@ def get_list_subset(image_list, r):
     try:
         start = int(page_results) * (int(page) - 1)
         end = int(page_results) * int(page)
-        return image_list[start:end], int(page)
+        max_page = ceil(len(image_list) / page_results)
+        return image_list[start:end], int(page), max_page
     except ValueError:
-        return image_list[0:50], 1
+        return image_list[0:50], 1, None
 
 
 @app.route('/')
@@ -82,9 +84,9 @@ def image_gallery():
 
     session = setup_session()
     db_images = Image.select_all(session)
-    images_subset, page = get_list_subset(db_images, request)
+    images_subset, page, max_page = get_list_subset(db_images, request)
 
-    return render_template('gallery.html', images=images_subset, page=page)
+    return render_template('gallery.html', images=images_subset, page=page, max_page=max_page)
 
 
 @app.route('/gallery/directory/<directory_id>')
@@ -110,10 +112,10 @@ def directory_gallery_id(directory_id):
         db_images = session.execute(query, {"path": subdir_path + "%"}).fetchall()
     else:
         db_images = session.execute(query, {"path": db_dir.path + "%"}).fetchall()
-    images_subset, page = get_list_subset(db_images, request)
+    images_subset, page, max_page = get_list_subset(db_images, request)
 
     return render_template('dir_gallery.html', images=images_subset, main_dir=db_dir.path, subdirs=processed_subdirs,
-                           page=page)
+                           page=page, max_page=max_page)
 
 
 # @app.route('/gallery/directory')

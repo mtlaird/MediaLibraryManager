@@ -30,10 +30,17 @@
 
     <footer>
       {% if page is not none %}
-        {% if page > 1 %}
-            <span><a href="?page={{ page - 1 }}">Prev</a></span>
-        {% endif %}
-            <span><a href="?page={{ page + 1 }}">Next</a></span>
+          {% if page > 2 %}
+              <span><a href="?page=1">First</a></span>
+          {% endif %}
+          {% if page > 1 %}
+              <span><a href="?page={{ page - 1 }}">Prev</a></span>
+          {% endif %}
+          <span><a href="/">Home</a></span>
+          <span><a href="?page={{ page + 1 }}">Next</a></span>
+          {% if max_page is not none %}
+              <span><a href="?page={{ max_page }}">Last</a></span>
+          {% endif %}
       {% endif %}
     </footer>
 

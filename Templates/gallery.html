@@ -9,10 +9,7 @@
     <section>
       <nav>
         <ul>
-            <li><a href="#">Nav</a></li>
-            <li><a href="#">Content</a></li>
-            <li><a href="#">Goes</a></li>
-            <li><a href="#">Here</a></li>
+            <li><a href="/">Home</a></li>
         </ul>
       </nav>
 
@@ -29,10 +26,17 @@
 
     <footer>
       {% if page is not none %}
-        {% if page > 1 %}
-            <span><a href="/gallery?page={{ page - 1 }}">Prev</a></span>
-        {% endif %}
+          {% if page > 2 %}
+              <span><a href="/gallery?page=1">First</a></span>
+          {% endif %}
+          {% if page > 1 %}
+              <span><a href="/gallery?page={{ page - 1 }}">Prev</a></span>
+          {% endif %}
+            <span><a href="/">Home</a></span>
             <span><a href="/gallery?page={{ page + 1 }}">Next</a></span>
+          {% if max_page is not none %}
+              <span><a href="/gallery?page={{ max_page }}">Last</a></span>
+          {% endif %}
       {% endif %}
     </footer>
 
