@@ -7,7 +7,7 @@ if __name__ == '__main__':
 
     config = MediaLibraryManagerConfig()
     app.config['mlm-config'] = config
-    logger = set_up_logging(config, single_run=False)
+    logger, logfile_name = set_up_logging(config, single_run=False)
     logger.info("Loaded config from {} ...".format(config.filename))
 
     if config.web_working_directory != "":

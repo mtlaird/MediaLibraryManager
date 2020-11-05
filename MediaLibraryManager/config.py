@@ -20,7 +20,7 @@ def set_up_logging(config, single_run=True):
         log.setLevel(logging.DEBUG)
     log.addHandler(handler)
 
-    return log
+    return log, logfile_name
 
 
 class MediaLibraryManagerConfig:

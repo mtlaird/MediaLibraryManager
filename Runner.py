@@ -5,7 +5,7 @@ from MediaLibraryManager.config import MediaLibraryManagerConfig, set_up_logging
 
 if __name__ == '__main__':
     config = MediaLibraryManagerConfig()
-    logger = set_up_logging(config)
+    logger, logfile_name = set_up_logging(config)
     logger.info("Loaded config from {} ...".format(config.filename))
     database_name = config.db_name
     logger.info("Connecting to database '{}' ...".format(database_name))
@@ -19,7 +19,7 @@ if __name__ == '__main__':
         logger.info("Creating scan object for directory '{}' ...".format(dir_config.path))
         scan = DirectoryScan(dir_config.path, dir_config.ignored_filetypes)
         scan.logger = logger
-        scan.log_file = config.generate_logfile_name()
+        scan.log_file = logfile_name
         scan.destination = config.dest_dir
         scan.move_type = dir_config.move_type
         scan.thumbnail_dir = config.thumbnail_dir
