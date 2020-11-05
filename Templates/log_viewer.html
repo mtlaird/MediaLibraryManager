@@ -1,0 +1,22 @@
+{%  extends 'base.html' %}
+
+{% block content %}
+        <header>
+          <h2>Directory Scan Log</h2>
+        </header>
+
+        <section>
+          <nav>
+            <ul>
+                <li><a href="/directory_scans">Directory Scans</a></li>
+            </ul>
+          </nav>
+          <article>
+              <textarea style="width:1000px; height:500px; margin: 0;">{{ log_contents }}</textarea>
+          </article>
+        </section>
+
+        <footer>
+            <span><a href="/">Back to Index</a></span>
+        </footer>
+{% endblock %}

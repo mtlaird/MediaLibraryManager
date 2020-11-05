@@ -70,6 +70,22 @@ def directory_scans():
     return render_template('directory_scans.html', scans=db_scans)
 
 
+@app.route('/directory_scans/logs/<scan_id>')
+def log_viewer(scan_id):
+
+    session = setup_session()
+    db_scan = DirectoryScan.select_one(session, id=scan_id)
+
+    log_contents = "ERROR: Could not read log file."
+    with open(db_scan.log_file, "r") as f:
+        try:
+            log_contents = f.read()
+        except Exception:
+            pass
+
+    return render_template('log_viewer.html', log_contents=log_contents)
+
+
 @app.route('/images')
 def images():
 
