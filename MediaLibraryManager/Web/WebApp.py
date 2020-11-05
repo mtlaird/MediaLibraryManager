@@ -33,6 +33,9 @@ def get_list_subset(image_list, r):
         start = int(page_results) * (int(page) - 1)
         end = int(page_results) * int(page)
         max_page = ceil(len(image_list) / page_results)
+        if end >= len(image_list):
+            end = len(image_list)
+            max_page = None
         return image_list[start:end], int(page), max_page
     except ValueError:
         return image_list[0:50], 1, None
