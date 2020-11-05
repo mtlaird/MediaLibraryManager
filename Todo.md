@@ -9,7 +9,6 @@ To-Do list
 * Add tags to multiple files at once
 * Image slideshow
 * Check available disk space before copying or creating files
-* Follow image orientation in thumbnails
 * Create medium-size versions of very large images
 
 Done:
@@ -17,3 +16,4 @@ Done:
 * Don't reload images that have already been scanned
 * Add pagination to gallery pages
 * Add main page to ui
+* Follow image orientation in thumbnails

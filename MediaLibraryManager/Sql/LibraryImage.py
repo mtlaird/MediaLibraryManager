@@ -54,11 +54,25 @@ class Image(BaseMixin, Base):
         if not thumbnail_dir:
             thumbnail_dir = 'thumbnails'
 
+        image_orientation = None
+        try:
+            image_orientation = self.image._getexif().get(274, None)
+        except AttributeError:
+            pass
+
         try:
             self.image.thumbnail(THUMBNAIL_MAX_SIZE)
         except OSError:
             self.logger.error("Could not create thumbnail for image '{}'".format(self.path))
             return
+
+        if image_orientation == 3:
+            self.image = self.image.transpose(PILImage.ROTATE_180)
+        elif image_orientation == 6:
+            self.image = self.image.transpose(PILImage.ROTATE_270)
+        elif image_orientation == 8:
+            self.image = self.image.transpose(PILImage.ROTATE_90)
+
         self.thumbnail_path = thumbnail_dir + '/' + str(self.file_id) + '.' + self.format.lower()
         self.image.save(self.thumbnail_path)
 
